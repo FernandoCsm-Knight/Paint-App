@@ -1,0 +1,70 @@
+
+export type Point = { x: number; y: number };
+
+export type Geometric = 'circle' | 
+                    'square' | 
+                    'triangle' | 
+                    'diamond' | 
+                    'pentagon' | 
+                    'hexagon' | 
+                    'octagon' | 
+                    'star' | 
+                    'rect' | 
+                    'line' | 
+                    'arrow' | 
+                    'board' |
+                    'freeform';
+
+export type ShapeOptions = {
+    strokeStyle?: string;
+    fillStyle?: string;
+    lineWidth?: number;
+    pixelated?: boolean;
+    pixelSize?: number;
+};
+
+export abstract class Shape {
+    abstract kind: Geometric;
+
+    strokeStyle: string;
+    fillStyle: string;
+    lineWidth: number;
+    pixelated: boolean;
+    pixelSize: number;
+
+    constructor(opts: ShapeOptions) {
+        this.strokeStyle = opts.strokeStyle ?? '#000000';
+        this.fillStyle = opts.fillStyle ?? '#FFFFFF';
+        this.lineWidth = opts.lineWidth ?? 1;
+        this.pixelated = opts.pixelated ?? false;
+        this.pixelSize = opts.pixelSize ?? 20;
+    }
+
+    abstract draw(ctx: CanvasRenderingContext2D): void;
+    abstract contains(p: Point): boolean;
+    abstract moveBy(dx: number, dy: number): void;
+
+    drawPixel(p: Point, ctx: CanvasRenderingContext2D): void {
+        ctx.fillRect(p.x * this.pixelSize, p.y * this.pixelSize, this.pixelSize, this.pixelSize);
+    }
+
+    drawPixelGrid(p: Point, ctx: CanvasRenderingContext2D): void {
+        const originalStrokeStyle = ctx.strokeStyle;
+        const gco = ctx.globalCompositeOperation;
+        const originalLineWidth = ctx.lineWidth;
+
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.strokeStyle = '#ddd';
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        ctx.rect(p.x * this.pixelSize, p.y * this.pixelSize, this.pixelSize, this.pixelSize);
+        ctx.stroke();
+        
+        ctx.strokeStyle = originalStrokeStyle;
+        ctx.globalCompositeOperation = gco;
+        ctx.lineWidth = originalLineWidth;
+    }
+};
+
+

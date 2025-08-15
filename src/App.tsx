@@ -1,16 +1,16 @@
+import { useContext, useEffect } from 'react';
 import Menu from './components/Menu'
 import useCanvas from './hooks/useCanvas';
-import { useEffect } from 'react';
+import MenuProvider from './providers/MenuProvider';
+import { PaintContext } from './context/PaintContext';
 
 function App() {
+  const { canvasRef, containerRef } = useContext(PaintContext)!;
+
   const {
-    canvasRef,
-    containerRef,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-    updateColor,
-    updateLineWidth,
     undo,
     redo,
   } = useCanvas();
@@ -35,13 +35,11 @@ function App() {
 
   return (
     <>
-      <Menu 
-        onColorChanged={updateColor}
-        onLineWidthChange={updateLineWidth}
-      />
+      <MenuProvider>
+        <Menu/>
+      </MenuProvider>
       <main ref={containerRef} className='h-full w-full flex items-center justify-center'>
         <canvas  
-          id="board" 
           ref={canvasRef}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}

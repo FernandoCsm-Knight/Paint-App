@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { type Point } from "../types/ShapeTypes";
 import type React from "react";
 
 type DraggableHandle = (e: React.PointerEvent<HTMLElement>) => void;
-
-export type Point = { x: number; y: number };
 
 export type DraggableOptions = {
   initial?: Point | "center";
@@ -14,7 +13,7 @@ export type DraggableOptions = {
 };
 
 export type UseDraggableReturn = {
-    ref: RefObject<HTMLElement>;
+    ref: RefObject<HTMLDivElement>;
     position: Point;
     setPosition: React.Dispatch<React.SetStateAction<Point>>;
     onPointerDown: DraggableHandle;
@@ -25,9 +24,22 @@ export const useDraggable = (options: DraggableOptions = {}) => {
     const { initial = { x: 0, y: 0 }, clamp = true, onDragStart, onDragEnd } = options;
 
     const [position, setPosition] = useState<Point>(() => (initial === "center" ? { x: 0, y: 20 } : initial));
-    const targetRef = useRef<HTMLElement | null>(null);
+    const targetRef = useRef<HTMLDivElement | null>(null);
     const dragOffsetRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
     const posRef = useRef<Point>(position);
+
+    const clampToViewport = useCallback((x: number, y: number): Point => {
+        if (!clamp) return { x, y };
+        const el = targetRef.current;
+        const w = el?.offsetWidth ?? 0;
+        const h = el?.offsetHeight ?? 0;
+        const maxX = Math.max(0, window.innerWidth - w);
+        const maxY = Math.max(0, window.innerHeight - h);
+        return {
+            x: Math.min(Math.max(0, x), maxX),
+            y: Math.min(Math.max(0, y), maxY),
+        };
+    }, [clamp]);
 
     useEffect(() => {
         posRef.current = position;
@@ -43,18 +55,22 @@ export const useDraggable = (options: DraggableOptions = {}) => {
         setPosition({ x, y });
     }, [initial]);
 
-    const clampToViewport = useCallback((x: number, y: number): Point => {
-        if (!clamp) return { x, y };
-        const el = targetRef.current;
-        const w = el?.offsetWidth ?? 0;
-        const h = el?.offsetHeight ?? 0;
-        const maxX = Math.max(0, window.innerWidth - w);
-        const maxY = Math.max(0, window.innerHeight - h);
-        return {
-            x: Math.min(Math.max(0, x), maxX),
-            y: Math.min(Math.max(0, y), maxY),
+    useEffect(() => {
+        const element = targetRef.current;
+        if (!element) return;
+
+        const adjustPosition = () => {
+            setPosition((prev) => clampToViewport(prev.x, prev.y));
         };
-    }, [clamp] );
+
+        const resizeObserver = new ResizeObserver(() => {
+            adjustPosition();
+        });
+
+        resizeObserver.observe(document.body);
+
+        return () => resizeObserver.disconnect();
+    }, [clampToViewport]);
 
     const onPointerDown: DraggableHandle = useCallback((e) => {
         e.preventDefault();
@@ -85,7 +101,7 @@ export const useDraggable = (options: DraggableOptions = {}) => {
     }, [clampToViewport, onDragEnd, onDragStart]);
 
     return {
-        ref: targetRef as RefObject<HTMLElement>,
+        ref: targetRef as RefObject<HTMLDivElement>,
         position,
         setPosition,
         onPointerDown,
