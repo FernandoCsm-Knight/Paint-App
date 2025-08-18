@@ -13,6 +13,7 @@ export type Geometric = 'circle' |
                     'line' | 
                     'arrow' | 
                     'board' |
+                    'image' |
                     'freeform';
 
 export type ShapeOptions = {

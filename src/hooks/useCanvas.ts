@@ -4,6 +4,7 @@ import type { Point, Shape } from "../types/ShapeTypes";
 import generator from "../types/ShapeGenerator";
 import FreeForm from "../types/FreeForm";
 import Board from "../types/Board";
+import ClipboardImage from "../types/ClipboardImage";
 
 const useCanvas = (pixelSize: number = 20) => {
     const { 
@@ -26,6 +27,25 @@ const useCanvas = (pixelSize: number = 20) => {
 
     const board = useRef<Board | null>(null);
     const lastPixelatedMode = useRef<boolean>(pixelated);
+
+    const pasteImage = (image: HTMLImageElement) => {
+        drawnShapes.current.push(new ClipboardImage(image));
+        redrawAllShapes();
+    };
+
+    const copyImage = (): Promise<Blob | null> => {
+        const canvas = canvasRef.current;
+
+        return new Promise((resolve) => {
+            if(canvas) {
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                });
+            } else {
+                resolve(null);
+            }
+        });
+    }
 
     const redrawAllShapes = useCallback(() => {
         const ctx = contextRef.current;
@@ -224,7 +244,9 @@ const useCanvas = (pixelSize: number = 20) => {
         handlePointerMove,
         handlePointerUp,
         undo,
-        redo
+        redo,
+        pasteImage,
+        copyImage
     };
 };
 
