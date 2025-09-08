@@ -1,4 +1,5 @@
 
+import bresenham from "../algorithms/BresenhamLine";
 import Line from "../shapes/Line";
 import { Shape, type Point, type ShapeOptions } from "./ShapeTypes";
 
@@ -58,6 +59,8 @@ export default class FreeForm extends Shape {
                 line.pixelatedDraw(ctx);
                 this.addPoint(p);
             }
+
+            if(this.isEraser) bresenham(lastPoint, p, this.drawPixelGrid.bind(this), ctx);
         } else if(distance > 2) {
             ctx.beginPath();
             ctx.moveTo(lastPoint.x, lastPoint.y);
@@ -86,7 +89,7 @@ export default class FreeForm extends Shape {
 
         for(let i = 0; i < this.points.length - 1; i++) {
             if(this.isEraser)  {
-                this.drawPixelGrid(this.points[i], ctx);
+                bresenham(this.points[i], this.points[i + 1], this.drawPixelGrid.bind(this), ctx);
             } else {
                 const line = new Line(this.points[i], this.points[i + 1], {
                     strokeStyle: this.strokeStyle,

@@ -34,7 +34,7 @@ const ShapeSelector = () => {
             setSelected('freeform');
             selectedShape.current = 'freeform';
         }
-    }, [selected]);
+    }, [selected, selectedShape]);
 
     return (
         <GlassCard initial={{ x: x, y: y + height + 10 }}>

@@ -22,47 +22,60 @@ export default class ClipboardImage extends Shape {
         this.keepDimensions = opts.keepDimensions ?? true;
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
-        let width = this.img.width;
-        let height = this.img.height;
+    private render(ctx: CanvasRenderingContext2D): void {
+        let fittedW = this.img.width;
+        let fittedH = this.img.height;
+        const aspect = this.img.width / this.img.height;
 
-        const aspectRatio = this.img.width / this.img.height;
-
-        if(width > ctx.canvas.width) {
-            width = ctx.canvas.width;
-            height = width / aspectRatio;
+        if (fittedW > ctx.canvas.width) {
+            fittedW = ctx.canvas.width;
+            fittedH = fittedW / aspect;
         }
 
-        if(height > ctx.canvas.height) {
-            height = ctx.canvas.height;
-            width = height * aspectRatio;
+        if (fittedH > ctx.canvas.height) {
+            fittedH = ctx.canvas.height;
+            fittedW = fittedH * aspect;
         }
 
-        if(this.width === 0 && this.height === 0 && this.keepDimensions) {
-            this.width = width;
-            this.height = height;
-        }
+        const drawW = this.keepDimensions
+            ? (this.width === 0 ? fittedW : this.width)
+            : fittedW;
+        const drawH = this.keepDimensions
+            ? (this.height === 0 ? fittedH : this.height)
+            : fittedH;
 
-        if(this.center || !this.position) {
+        this.width = drawW;
+        this.height = drawH;
+
+        if (this.center || !this.position) {
             this.position = {
-                x: (ctx.canvas.width - width) / 2,
-                y: (ctx.canvas.height - height) / 2
+                x: (ctx.canvas.width - drawW) / 2,
+                y: (ctx.canvas.height - drawH) / 2,
             };
         }
 
-        if(this.keepDimensions) {
-            ctx.drawImage(this.img, this.position.x, this.position.y, this.width, this.height);
-        } else {
-            ctx.drawImage(this.img, this.position.x, this.position.y, width, height);
-        }
+        ctx.drawImage(this.img, this.position.x, this.position.y, drawW, drawH);
+    }
+
+    pixelatedDraw(ctx: CanvasRenderingContext2D): void {
+        this.render(ctx);
+    }
+
+    standardDraw(ctx: CanvasRenderingContext2D): void {
+        this.render(ctx);
     }
 
     contains(p: Point): boolean {
-        return this.position !== null && (
+        if (!this.position) return false;
+
+        const w = this.width || this.img.width;
+        const h = this.height || this.img.height;
+
+        return (
             p.x >= this.position.x &&
-            p.x <= this.position.x + this.img.width &&
+            p.x <= this.position.x + w &&
             p.y >= this.position.y &&
-            p.y <= this.position.y + this.img.height
+            p.y <= this.position.y + h
         );
     }
 
