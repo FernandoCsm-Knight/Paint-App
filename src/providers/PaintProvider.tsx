@@ -13,8 +13,10 @@ const PaintProvider = ({ children }: PaintProviderProps) => {
     
     const paintContext: PaintContextType = {
         canvasRef: useRef<HTMLCanvasElement | null>(null),
+        replacementCanvasRef: useRef<HTMLCanvasElement | null>(null),
         containerRef: useRef<HTMLDivElement | null>(null),
         contextRef: useRef<CanvasRenderingContext2D | null>(null),
+        replacementContextRef: useRef<CanvasRenderingContext2D | null>(null),
         isEraserActive: isEraserActive,
         setEraser: setEraser,
         isFillActive: isFillActive,

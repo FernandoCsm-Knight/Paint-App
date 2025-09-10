@@ -15,7 +15,7 @@ export default class Line extends Shape {
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
-    bresenham(this.start, this.end, this.drawPixel.bind(this), ctx);
+        bresenham(this.start, this.end, this.drawPixel.bind(this), ctx);
     }
 
     standardDraw(ctx: CanvasRenderingContext2D): void {

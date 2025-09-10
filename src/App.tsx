@@ -6,7 +6,7 @@ import { PaintContext } from './context/PaintContext';
 import { ClipboardImageLoader } from './utils/ClipboardImageLoader';
 
 function App() {
-    const { canvasRef, containerRef } = useContext(PaintContext)!;
+    const { canvasRef, replacementCanvasRef, containerRef } = useContext(PaintContext)!;
 
     const {
         handlePointerDown,
@@ -61,15 +61,19 @@ function App() {
             <MenuProvider>
                 <Menu />
             </MenuProvider>
-            <main ref={containerRef} className='h-full w-full flex items-center justify-center'>
+            <main ref={containerRef} className='h-full w-full relative inline-block'>
+                <canvas
+                    ref={replacementCanvasRef}
+                    className='absolute border-0 pointer-events-none top-0 left-0'
+                ></canvas>
                 <canvas
                     ref={canvasRef}
+                    className='relative border-0'
                     onPointerDown={handlePointerDown}
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerUp}
                     onPointerCancel={handlePointerUp}
                     onPointerLeave={handlePointerUp}
-                    style={{ border: '1px solid #ccc' }}
                 ></canvas>
             </main>
         </>

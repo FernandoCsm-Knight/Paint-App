@@ -41,25 +41,6 @@ export abstract class Shape {
     drawPixel(p: Point, ctx: CanvasRenderingContext2D): void {
         ctx.fillRect(p.x * this.pixelSize, p.y * this.pixelSize, this.pixelSize, this.pixelSize);
     }
-
-    drawPixelGrid(p: Point, ctx: CanvasRenderingContext2D): void {
-        const originalStrokeStyle = ctx.strokeStyle;
-        const gco = ctx.globalCompositeOperation;
-        const originalLineWidth = ctx.lineWidth;
-
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.strokeStyle = '#ddd';
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-        ctx.clearRect(p.x * this.pixelSize, p.y * this.pixelSize, this.pixelSize, this.pixelSize);
-        ctx.rect(p.x * this.pixelSize, p.y * this.pixelSize, this.pixelSize, this.pixelSize);
-        ctx.stroke();
-        
-        ctx.strokeStyle = originalStrokeStyle;
-        ctx.globalCompositeOperation = gco;
-        ctx.lineWidth = originalLineWidth;
-    }
 };
 
 

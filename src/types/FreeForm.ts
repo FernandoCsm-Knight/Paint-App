@@ -1,6 +1,4 @@
-
 import bresenham from "../algorithms/BresenhamLine";
-import Line from "../shapes/Line";
 import type { Point } from "./Graphics";
 import { Shape, type ShapeOptions } from "./ShapeTypes";
 
@@ -50,18 +48,9 @@ export default class FreeForm extends Shape {
 
         if(this.pixelated) {
             if(!this.contains(p)) {
-                const line = new Line(lastPoint, p, {
-                    strokeStyle: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    pixelated: this.pixelated,
-                    pixelSize: this.pixelSize
-                });
-        
-                line.pixelatedDraw(ctx);
+                bresenham(lastPoint, p, this.drawPixel.bind(this), ctx);
                 this.addPoint(p);
             }
-
-            if(this.isEraser) bresenham(lastPoint, p, this.drawPixelGrid.bind(this), ctx);
         } else if(distance > 2) {
             ctx.beginPath();
             ctx.moveTo(lastPoint.x, lastPoint.y);
@@ -89,18 +78,7 @@ export default class FreeForm extends Shape {
         ctx.lineWidth = this.lineWidth;
 
         for(let i = 0; i < this.points.length - 1; i++) {
-            if(this.isEraser)  {
-                bresenham(this.points[i], this.points[i + 1], this.drawPixelGrid.bind(this), ctx);
-            } else {
-                const line = new Line(this.points[i], this.points[i + 1], {
-                    strokeStyle: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    pixelated: this.pixelated,
-                    pixelSize: this.pixelSize
-                });
-    
-                line.pixelatedDraw(ctx);
-            }
+            bresenham(this.points[i], this.points[i + 1], this.drawPixel.bind(this), ctx);
         }
 
         ctx.globalCompositeOperation = gco;

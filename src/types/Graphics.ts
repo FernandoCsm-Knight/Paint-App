@@ -13,8 +13,8 @@ export const lineInfo = (start: Point, end: Point): { angle: number; size: numbe
 
 export const map = (p: Point, pixelSize: number): Point => {
     return {
-        x: Math.round(p.x / pixelSize),
-        y: Math.round(p.y / pixelSize)
+        x: Math.floor(p.x / pixelSize),
+        y: Math.floor(p.y / pixelSize)
     };
 }
 

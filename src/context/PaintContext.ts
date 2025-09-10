@@ -3,8 +3,10 @@ import type { Geometric } from "../types/Graphics";
 
 export type PaintContextType = {
     canvasRef: RefObject<HTMLCanvasElement | null>;
+    replacementCanvasRef: RefObject<HTMLCanvasElement | null>;
     containerRef: RefObject<HTMLDivElement | null>;
     contextRef: RefObject<CanvasRenderingContext2D | null>;
+    replacementContextRef: RefObject<CanvasRenderingContext2D | null>;
     currentColor: RefObject<string>;
     thickness: RefObject<number>;
     selectedShape: RefObject<Geometric>;

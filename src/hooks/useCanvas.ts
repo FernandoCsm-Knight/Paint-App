@@ -3,7 +3,6 @@ import { PaintContext } from "../context/PaintContext";
 import { Shape } from "../types/ShapeTypes";
 import generator from "../types/ShapeGenerator";
 import FreeForm from "../types/FreeForm";
-import Board from "../types/Board";
 import ClipboardImage from "../types/ClipboardImage";
 import FloodFill from "../algorithms/FloodFill";
 import { map, type Point } from "../types/Graphics";
@@ -11,8 +10,10 @@ import { map, type Point } from "../types/Graphics";
 const useCanvas = (pixelSize: number = 20) => {
     const { 
         canvasRef, 
+        replacementCanvasRef,
         containerRef, 
         contextRef, 
+        replacementContextRef,
         thickness, 
         currentColor, 
         isEraserActive, 
@@ -28,7 +29,6 @@ const useCanvas = (pixelSize: number = 20) => {
     const redoStackRef = useRef<Shape[]>([]);
     const currentShape = useRef<Shape | null>(null);
 
-    const board = useRef<Board | null>(null);
     const lastPixelatedMode = useRef<boolean>(pixelated);
 
     const pasteImage = (image: HTMLImageElement) => {
@@ -40,13 +40,8 @@ const useCanvas = (pixelSize: number = 20) => {
         const canvas = canvasRef.current;
 
         return new Promise((resolve) => {
-            if(canvas) {
-                canvas.toBlob((blob) => {
-                    resolve(blob);
-                });
-            } else {
-                resolve(null);
-            }
+            if(canvas) canvas.toBlob((blob) => resolve(blob));
+            else resolve(null);
         });
     }
 
@@ -57,20 +52,57 @@ const useCanvas = (pixelSize: number = 20) => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         
         if(lastPixelatedMode.current !== pixelated) {
-            drawnShapes.current = [board.current!];
+            drawnShapes.current = [];
             redoStackRef.current = [];
             lastPixelatedMode.current = pixelated;
         }
 
         drawnShapes.current.forEach(shape => shape.draw(ctx));
-    }, [drawnShapes, pixelated, board, contextRef]);
+    }, [drawnShapes, pixelated, contextRef]);
+
+    const redrawGrid = useCallback((width: number, height: number) => {
+        const ctx = replacementContextRef.current;
+        if(!ctx) return;
+
+        const xCount = Math.floor(width / pixelSize);
+        const yCount = Math.floor(height / pixelSize);
+
+        ctx.clearRect(0, 0, width, height);
+        
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.strokeStyle = "#dddddd";
+        ctx.lineWidth = 1;
+
+        for(let i = 0; i <= xCount; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * pixelSize, 0);
+            ctx.lineTo(i * pixelSize, height);
+            ctx.stroke();
+        }
+
+        for(let i = 0; i <= yCount; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * pixelSize);
+            ctx.lineTo(width, i * pixelSize);
+            ctx.stroke();
+        }
+    }, [pixelated, pixelSize, replacementContextRef]);
+
+    const clearGrid = useCallback((width: number, height: number) => {
+        const ctx = replacementContextRef.current;
+        if(!ctx) return;
+        
+        ctx.clearRect(0, 0, width, height);
+        ctx.stroke();
+    }, [replacementContextRef]);
 
     useEffect(() => {
-        const setupCanvas = (preserve = true) => {
+        const setupCanvas = () => {
             const canvas = canvasRef.current;
+            const replacementCanvas = replacementCanvasRef.current;
             const parent = containerRef.current;
 
-            if(canvas && parent) {
+            if(canvas && replacementCanvas && parent) {
                 const rect = parent.getBoundingClientRect();
                 const cssWidth = Math.floor(rect.width);
                 const cssHeight = Math.floor(rect.height);
@@ -80,46 +112,41 @@ const useCanvas = (pixelSize: number = 20) => {
                 canvas.width = cssWidth;
                 canvas.height = cssHeight;
 
-                board.current = new Board(
-                    cssWidth, 
-                    cssHeight, 
-                    {
-                        strokeStyle: "#ddd",
-                        lineWidth: 1,
-                        pixelSize: pixelSize,
-                        pixelated: pixelated,
-                    }
-                );
-
-                if(drawnShapes.current.length === 0) {
-                    drawnShapes.current = [board.current];
-                } else {
-                    drawnShapes.current[0] = board.current;
-                }
+                replacementCanvas.style.width = cssWidth + "px";
+                replacementCanvas.style.height = cssHeight + "px";
+                replacementCanvas.width = cssWidth;
+                replacementCanvas.height = cssHeight;
 
                 const ctx = canvas.getContext("2d");
                 if(ctx) {
                     ctx.imageSmoothingEnabled = false;
-                    
                     ctx.globalAlpha = 1;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
-                    
                     contextRef.current = ctx;
-
-                    if(preserve) redrawAllShapes();
                 }
+
+                const replacementCtx = replacementCanvas.getContext("2d");
+                if(replacementCtx) {
+                    replacementCtx.imageSmoothingEnabled = false;
+                    replacementContextRef.current = replacementCtx;
+                }
+
+                if(pixelated) redrawGrid(cssWidth, cssHeight);
+                else clearGrid(cssWidth, cssHeight);
+
+                redrawAllShapes();
             }
         };
 
-        setupCanvas(false);
-        const ro = new ResizeObserver(() => setupCanvas(true));
+        setupCanvas();
+        const ro = new ResizeObserver(() => setupCanvas());
         if(containerRef.current) ro.observe(containerRef.current);
         return () => ro.disconnect();
-    }, [pixelated, pixelSize, thickness, currentColor, board, canvasRef, containerRef, contextRef, redrawAllShapes]);
+    }, [pixelated, pixelSize, thickness, currentColor, canvasRef, replacementCanvasRef, containerRef, contextRef, replacementContextRef, redrawAllShapes, redrawGrid]);
 
     const undo = useCallback(() => {
-        if(drawnShapes.current.length <= 1) return;
+        if(drawnShapes.current.length === 0) return;
 
         const current = drawnShapes.current.pop();
         if(current) {
