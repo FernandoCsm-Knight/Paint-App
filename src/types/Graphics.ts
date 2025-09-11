@@ -1,7 +1,7 @@
 export type Point = { x: number; y: number };
 export type RGBA = { r: number; g: number; b: number; a: number };
 export type Geometric = 'circle' | 'square' | 'triangle' | 'diamond' | 
-                        'pentagon' | 'hexagon' | 'octagon' | 'star' | 
+                        'pentagon' | 'hexagon' | 'heptagon' | 'octagon' | 'star' | 
                         'rect' | 'line' | 'arrow' | 'board' | 'image' |
                         'freeform';
 
@@ -34,5 +34,20 @@ export const isSameColor = (color: RGBA, target: RGBA, tolerance: number): boole
         Math.abs(color.b - target.b) <= tolerance &&
         Math.abs(color.a - target.a) <= tolerance 
     );
-}
+};
+
+export const createPolygon = (sides: number, start: Point, end: Point): Point[] => {
+    const { angle, size } = lineInfo(start, end);
+
+    const points: Point[] = [];
+    for(let i = 0; i < sides; i++) {
+        const adjust = (i * Math.PI) / (sides / 2);
+        points.push({
+            x: Math.round(start.x + size * Math.cos(angle + adjust)),
+            y: Math.round(start.y + size * Math.sin(angle + adjust))
+        });
+    }
+
+    return points;
+};
 

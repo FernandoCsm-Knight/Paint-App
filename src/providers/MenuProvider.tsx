@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { MenuContext, type MenuContextType } from "../context/MenuContext";
 
 type MenuProviderProps = {
@@ -6,10 +6,14 @@ type MenuProviderProps = {
 };
 
 const MenuProvider = ({ children }: MenuProviderProps) => {
-    
+    const [shapeMenu, setShapeMenu] = useState<boolean>(false);
+
     const menuDefaults: MenuContextType = {
         shapeButtonRef: useRef(null),
-        settingButtonRef: useRef(null)
+        settingButtonRef: useRef(null),
+
+        shapeMenu: shapeMenu,
+        setShapeMenu: setShapeMenu
     };
 
     return(

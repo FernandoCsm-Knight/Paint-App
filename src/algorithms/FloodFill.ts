@@ -53,8 +53,11 @@ export default class FloodFill {
         const maxX = Math.floor(canvas.width / pixelSize) - 1;
         const maxY = Math.floor(canvas.height / pixelSize) - 1;
 
-        const visited = new Set<string>();
-        const stack: Point[] = [start];
+    const gridW = maxX + 1;
+    const gridH = maxY + 1;
+    const visited = new Uint8Array(gridW * gridH); 
+    const idxOf = (x: number, y: number) => y * gridW + x;
+    const stack: Point[] = [start];
 
         const gco = ctx.globalCompositeOperation;
 
@@ -66,9 +69,9 @@ export default class FloodFill {
 
         while(stack.length > 0) {
             const p = stack.pop()!;
-            const key = `${p.x},${p.y}`;
-
-            if(!visited.has(key) && (p.x >= 0 && p.x <= maxX && p.y >= 0 && p.y <= maxY)) {
+            if((p.x >= 0 && p.x <= maxX && p.y >= 0 && p.y <= maxY)) {
+                const vIdx = idxOf(p.x, p.y);
+                if(visited[vIdx]) continue;
                 const center = pixelCenter(p, pixelSize);
 
                 const idx = (center.y * canvas.width + center.x) * 4;
@@ -84,8 +87,8 @@ export default class FloodFill {
                     isTarget = a >= 250 && isSameColor({ r, g, b, a }, targetColor, tolerance);
                 }
 
-                if(isTarget) {                    
-                    visited.add(key);
+                if(isTarget) {
+                    visited[vIdx] = 1;
                     ctx.fillRect(p.x * pixelSize, p.y * pixelSize, pixelSize, pixelSize);
                     
                     stack.push({ x: p.x + 1, y: p.y });

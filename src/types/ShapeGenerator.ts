@@ -10,6 +10,7 @@ import Rectangle from "../shapes/Rectangle";
 import Pentagon from "../shapes/Pentagon";
 import Diamond from "../shapes/Diamond";
 import Arrow from "../shapes/Arrow";
+import Heptagon from "../shapes/Heptagon";
 
 type ShapeGeneratorProps = {
     start: Point;
@@ -81,6 +82,13 @@ const generator = ({ start, end, color, thickness, kind, pixelated = false, pixe
             });
         case "hexagon":
             return new Hexagon(start, end, {
+                strokeStyle: color,
+                lineWidth: thickness,
+                pixelated: pixelated,
+                pixelSize: pixelSize
+            });
+        case "heptagon":
+            return new Heptagon(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,

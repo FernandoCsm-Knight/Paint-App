@@ -1,24 +1,18 @@
-import { GripHorizontal, Settings, Shapes } from "lucide-react";
+import { LuGripHorizontal, LuSettings } from "react-icons/lu";
 import { useDraggable } from "../hooks/useDraggable";
 import ColorSelector from "./menu/ColorSelector";
 import EraserButton from "./menu/EraserButton";
 import FillButton from "./menu/FillButton";
 import WidthSelector from "./menu/WidthSelector";
 import MenuTitle from "./menu/MenuTitle";
-import PaintButton from "./PaintButton";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import ShapeSelector from "./menu/ShapeSelector";
 import { MenuContext } from "../context/MenuContext";
+import ShapesButton from "./menu/ShapesButton";
 
 const Menu = () => {
-    const { shapeButtonRef, settingButtonRef } = useContext(MenuContext)!;
-    const [isShapeMenuOpen, setIsShapeMenuOpen] = useState<boolean>(false);
-
+    const { settingButtonRef, shapeMenu } = useContext(MenuContext)!;
     const draggable = useDraggable({ initial: "center", clamp: true });
-
-    const openShapeMenu = () => {
-        setIsShapeMenuOpen(!isShapeMenuOpen);
-    };
 
     return(
         <header>
@@ -31,9 +25,7 @@ const Menu = () => {
                     <MenuTitle/>
                     <ColorSelector/>
                     <EraserButton/>
-                    <PaintButton ref={shapeButtonRef} onClick={openShapeMenu} stayActive>
-                        <Shapes className="text-gray-700 w-4 h-4 sm:w-5 sm:h-5"/>
-                    </PaintButton>
+                    <ShapesButton/>
                     <FillButton/>
                     <WidthSelector/>
                     <div className="flex flex-col gap-1">
@@ -42,20 +34,20 @@ const Menu = () => {
                             className="block cursor-grab active:cursor-grabbing touch-none select-none"
                             aria-label="Drag to move"
                         >
-                            <GripHorizontal className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
+                            <LuGripHorizontal className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
                         </button>
                         <button
                             ref={settingButtonRef}
                             className="block cursor-pointer"
                             aria-label="Open settings"
                         >
-                            <Settings className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
+                            <LuSettings className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
                         </button>
                     </div>
                 </div>
             </div>
 
-            { isShapeMenuOpen ? <ShapeSelector /> : null }
+            { shapeMenu ? <ShapeSelector /> : null }
         </header>
     );
 };

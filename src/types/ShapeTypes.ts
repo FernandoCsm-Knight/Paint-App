@@ -28,7 +28,10 @@ export abstract class Shape {
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
-        if(this.pixelated) this.pixelatedDraw(ctx);
+        if(this.pixelated) {
+            ctx.fillStyle = this.strokeStyle;
+            this.pixelatedDraw(ctx);
+        }
         else this.standardDraw(ctx);
     }
 
@@ -38,8 +41,18 @@ export abstract class Shape {
     abstract pixelatedDraw(ctx: CanvasRenderingContext2D): void;
     abstract standardDraw(ctx: CanvasRenderingContext2D): void;
 
-    drawPixel(p: Point, ctx: CanvasRenderingContext2D): void {
-        ctx.fillRect(p.x * this.pixelSize, p.y * this.pixelSize, this.pixelSize, this.pixelSize);
+    drawPixel(p: Point, ctx: CanvasRenderingContext2D) {
+        const halfWidth = Math.floor(this.lineWidth / 2);
+        const start = (this.lineWidth % 2 === 0) ? -halfWidth + 1 : -halfWidth;
+        const end = halfWidth;
+
+        for(let dx = start; dx <= end; dx++) {
+            for(let dy = start; dy <= end; dy++) {
+                const pixelX = (p.x + dx) * this.pixelSize;
+                const pixelY = (p.y + dy) * this.pixelSize;
+                ctx.fillRect(pixelX, pixelY, this.pixelSize, this.pixelSize);
+            }
+        }
     }
 };
 

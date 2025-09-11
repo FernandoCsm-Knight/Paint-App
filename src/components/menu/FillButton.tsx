@@ -1,4 +1,4 @@
-import { PaintBucket } from "lucide-react";
+import { LuPaintBucket } from "react-icons/lu";
 import { useContext } from "react";
 import { PaintContext } from "../../context/PaintContext";
 import PaintButton from "../PaintButton";
@@ -8,7 +8,7 @@ const FillButton = () => {
 
     return (
         <PaintButton onClick={() => setFill(!isFillActive)} stayActive active={isFillActive}>
-            <PaintBucket className="text-gray-700 w-4 h-4 sm:w-5 sm:h-5"/>
+            <LuPaintBucket className="text-gray-700 w-4 h-4 sm:w-5 sm:h-5"/>
         </PaintButton>
     );
 };

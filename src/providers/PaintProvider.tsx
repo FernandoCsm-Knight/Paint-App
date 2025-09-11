@@ -10,6 +10,7 @@ const PaintProvider = ({ children }: PaintProviderProps) => {
     const [pixelated, setPixelated] = useState<boolean>(false);
     const [isEraserActive, setEraser] = useState<boolean>(false);
     const [isFillActive, setFill] = useState<boolean>(false);
+    const [selectedShape, setSelectedShape] = useState<Geometric>('freeform');
     
     const paintContext: PaintContextType = {
         canvasRef: useRef<HTMLCanvasElement | null>(null),
@@ -17,16 +18,17 @@ const PaintProvider = ({ children }: PaintProviderProps) => {
         containerRef: useRef<HTMLDivElement | null>(null),
         contextRef: useRef<CanvasRenderingContext2D | null>(null),
         replacementContextRef: useRef<CanvasRenderingContext2D | null>(null),
+        currentColor: useRef<string>('#000000'),
+        thickness: useRef<number>(5),
+        
+        pixelated: pixelated,
+        setPixelated: setPixelated,
         isEraserActive: isEraserActive,
         setEraser: setEraser,
         isFillActive: isFillActive,
         setFill: setFill,
-        currentColor: useRef<string>('#000000'),
-        selectedShape: useRef<Geometric>('freeform'),
-        thickness: useRef<number>(5),
-
-        pixelated: pixelated,
-        setPixelated: setPixelated
+        selectedShape: selectedShape,
+        setSelectedShape: setSelectedShape
     };
 
     return (

@@ -1,4 +1,5 @@
-import { Shape, type Point, type ShapeOptions } from "./ShapeTypes";
+import type { Point } from "./Graphics";
+import { Shape, type ShapeOptions } from "./ShapeTypes";
 
 export default class ClipboardImage extends Shape {
     kind = 'image' as const;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { type Point } from "../types/ShapeTypes";
+import { type Point } from "../types/Graphics";
 import type React from "react";
 
 type DraggableHandle = (e: React.PointerEvent<HTMLElement>) => void;
@@ -60,7 +60,7 @@ export const useDraggable = (options: DraggableOptions = {}) => {
         if (!element) return;
 
         const adjustPosition = () => {
-            setPosition((prev) => clampToViewport(prev.x, prev.y));
+            setPosition((prev: Point) => clampToViewport(prev.x, prev.y));
         };
 
         const resizeObserver = new ResizeObserver(() => {

@@ -47,6 +47,7 @@ export default class FreeForm extends Shape {
         ctx.strokeStyle = this.strokeStyle;
 
         if(this.pixelated) {
+            ctx.fillStyle = this.strokeStyle;
             if(!this.contains(p)) {
                 bresenham(lastPoint, p, this.drawPixel.bind(this), ctx);
                 this.addPoint(p);
@@ -71,16 +72,14 @@ export default class FreeForm extends Shape {
 
         const gco = ctx.globalCompositeOperation;
         if(this.isEraser) ctx.globalCompositeOperation = 'destination-out';
-
-        ctx.beginPath();
-
-        ctx.strokeStyle = this.strokeStyle;
-        ctx.lineWidth = this.lineWidth;
+    const prev = ctx.fillStyle;
+    ctx.fillStyle = this.strokeStyle;
 
         for(let i = 0; i < this.points.length - 1; i++) {
             bresenham(this.points[i], this.points[i + 1], this.drawPixel.bind(this), ctx);
         }
 
+    ctx.fillStyle = prev;
         ctx.globalCompositeOperation = gco;
     }
 

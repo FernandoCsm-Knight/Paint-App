@@ -1,4 +1,4 @@
-import { Eraser } from "lucide-react";
+import { LuEraser } from "react-icons/lu";
 import { useContext } from "react";
 import { PaintContext } from "../../context/PaintContext";
 
@@ -15,7 +15,7 @@ const EraserButton = () => {
             }`}
             aria-label={isEraserActive ? "Desativar borracha" : "Ativar borracha"}
         >
-            <Eraser className={`${isEraserActive ? 'text-white' : 'text-gray-700'} w-4 h-4 sm:w-5 sm:h-5`} />
+            <LuEraser className={`${isEraserActive ? 'text-white' : 'text-gray-700'} w-4 h-4 sm:w-5 sm:h-5`} />
         </button>
     );
 };

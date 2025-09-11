@@ -15,6 +15,7 @@ export default class Arrow extends Shape {
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
+        ctx.fillStyle = this.strokeStyle;
         const angle = Math.atan2(this.end.y - this.start.y, this.end.x - this.start.x);
         const headLength = Math.max(3, 2 * this.lineWidth);
 

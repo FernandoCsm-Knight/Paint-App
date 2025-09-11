@@ -18,6 +18,7 @@ export default class Circle extends Shape {
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
+        ctx.fillStyle = this.strokeStyle;
         let x = 0;
         let y = Math.round(this.radius);
         let p = 1 - Math.round(this.radius);

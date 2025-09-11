@@ -1,7 +1,7 @@
-import { GripHorizontal } from "lucide-react";
+import { LuGripHorizontal } from "react-icons/lu";
 import { useDraggable } from "../../hooks/useDraggable";
 import type { ReactNode } from "react";
-import type { Point } from "../../types/ShapeTypes";
+import type { Point } from "../../types/Graphics";
 
 type GlassCardProps = {
     initial: Point
@@ -25,7 +25,7 @@ const GlassCard = ({ initial, children }: GlassCardProps) => {
                     className="block cursor-grab pr-2 pb-2 active:cursor-grabbing touch-none select-none"
                     aria-label="Drag to move"
                 >
-                    <GripHorizontal className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
+                    <LuGripHorizontal className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
                 </button>
             </div>
         </section>

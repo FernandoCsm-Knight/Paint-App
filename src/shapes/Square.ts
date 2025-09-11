@@ -14,6 +14,7 @@ export default class Square extends Shape {
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
+        ctx.fillStyle = this.strokeStyle;
         const dx = this.bottomRight.x - this.topLeft.x;
         const dy = this.bottomRight.y - this.topLeft.y;
         const side = Math.max(Math.abs(dx), Math.abs(dy));

@@ -1,6 +1,6 @@
 import { Shape,  type ShapeOptions } from "../types/ShapeTypes";
 import { rasterizePolygon, rasterizePixelatedPolygon } from "../algorithms/PolygonRasterization";
-import { lineInfo, type Point } from "../types/Graphics";
+import { createPolygon, type Point } from "../types/Graphics";
 
 export default class Pentagon extends Shape {
     kind = 'pentagon' as const;
@@ -9,19 +9,11 @@ export default class Pentagon extends Shape {
 
     constructor(start: Point, end: Point, opts: ShapeOptions) {
         super(opts);
-        const { angle, size } = lineInfo(start, end);
-
-        this.points = [];
-        for(let i = 0; i < 5; i++) {
-            const adjust = (i * 2 * Math.PI) / 5;
-            this.points.push({
-                x: Math.round(start.x + size * Math.cos(angle + adjust)),
-                y: Math.round(start.y + size * Math.sin(angle + adjust))
-            });
-        }
+        this.points = createPolygon(5, start, end);
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
+        ctx.fillStyle = this.strokeStyle;
         rasterizePixelatedPolygon(this.points, this.drawPixel.bind(this), ctx);
     }
 

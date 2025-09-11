@@ -69,24 +69,30 @@ const useCanvas = (pixelSize: number = 20) => {
 
         ctx.clearRect(0, 0, width, height);
         
+        ctx.save();
         ctx.globalCompositeOperation = 'destination-over';
         ctx.strokeStyle = "#dddddd";
         ctx.lineWidth = 1;
 
+        // Batch vertical lines
+        ctx.beginPath();
         for(let i = 0; i <= xCount; i++) {
-            ctx.beginPath();
-            ctx.moveTo(i * pixelSize, 0);
-            ctx.lineTo(i * pixelSize, height);
-            ctx.stroke();
+            const x = i * pixelSize + 0.5; // align to pixel grid for crisp lines
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
         }
+        ctx.stroke();
 
+        // Batch horizontal lines
+        ctx.beginPath();
         for(let i = 0; i <= yCount; i++) {
-            ctx.beginPath();
-            ctx.moveTo(0, i * pixelSize);
-            ctx.lineTo(width, i * pixelSize);
-            ctx.stroke();
+            const y = i * pixelSize + 0.5; // align to pixel grid for crisp lines
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
         }
-    }, [pixelated, pixelSize, replacementContextRef]);
+        ctx.stroke();
+        ctx.restore();
+    }, [pixelSize, replacementContextRef]);
 
     const clearGrid = useCallback((width: number, height: number) => {
         const ctx = replacementContextRef.current;
@@ -143,7 +149,7 @@ const useCanvas = (pixelSize: number = 20) => {
         const ro = new ResizeObserver(() => setupCanvas());
         if(containerRef.current) ro.observe(containerRef.current);
         return () => ro.disconnect();
-    }, [pixelated, pixelSize, thickness, currentColor, canvasRef, replacementCanvasRef, containerRef, contextRef, replacementContextRef, redrawAllShapes, redrawGrid]);
+    }, [pixelated, pixelSize, thickness, currentColor, canvasRef, replacementCanvasRef, containerRef, contextRef, replacementContextRef, redrawAllShapes, redrawGrid, clearGrid]);
 
     const undo = useCallback(() => {
         if(drawnShapes.current.length === 0) return;
@@ -166,6 +172,8 @@ const useCanvas = (pixelSize: number = 20) => {
     }, [redrawAllShapes]);
 
     const handlePointerDown = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
+        if(e.button !== 0) return;
+
         const ctx = contextRef.current;
         const canvas = canvasRef.current;
         
@@ -182,7 +190,7 @@ const useCanvas = (pixelSize: number = 20) => {
             isDrawing.current = true;
             start.current = (pixelated) ? map({ x: x, y: y }, pixelSize) : { x: x, y: y };
 
-            if(selectedShape.current === 'freeform') {
+            if(selectedShape === 'freeform') {
                 const form = new FreeForm([start.current], {
                     strokeStyle: currentColor.current,
                     lineWidth: thickness.current,
@@ -197,54 +205,71 @@ const useCanvas = (pixelSize: number = 20) => {
         }
     }, [start, selectedShape, isEraserActive, isFillActive, pixelated, pixelSize, currentColor, thickness, canvasRef, contextRef]);
 
+    const rafId = useRef<number | null>(null);
+    const pendingPoint = useRef<Point | null>(null);
+
     const handlePointerMove = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
-        if(isDrawing.current) {
-            const ctx = contextRef.current;
-            const canvas = canvasRef.current;
-            
-            if(ctx && canvas) {
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+        if(!isDrawing.current) return;
 
-                const point = (pixelated) ? map({ x: x, y: y }, pixelSize) : { x: x, y: y };
+        const ctx = contextRef.current;
+        const canvas = canvasRef.current;
+        if(!ctx || !canvas) return;
 
-                if(selectedShape.current === 'freeform') {
-                    if(currentShape.current instanceof FreeForm) {
-                        currentShape.current.lineTo(point, ctx);
-                    }
-                } else {
-                    if(currentShape.current) redrawAllShapes();
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const point = (pixelated) ? map({ x, y }, pixelSize) : { x, y };
 
-                    const shape = generator({ 
-                        start: start.current, 
-                        end: point,
-                        color: currentColor.current,
-                        thickness: thickness.current,
-                        kind: selectedShape.current,
-                        pixelated: pixelated,
-                        pixelSize: pixelSize
-                    });
-
-                    currentShape.current = shape;
-                    shape.draw(ctx);
-                } 
+        if(selectedShape === 'freeform') {
+            if(currentShape.current instanceof FreeForm) {
+                currentShape.current.lineTo(point, ctx);
             }
+            return;
+        }
+
+        // Throttle non-freeform previews to animation frames
+        pendingPoint.current = point;
+        if(rafId.current === null) {
+            rafId.current = requestAnimationFrame(() => {
+                rafId.current = null;
+                const p = pendingPoint.current;
+                if(!p) return;
+                if(currentShape.current) redrawAllShapes();
+
+                const shape = generator({
+                    start: start.current,
+                    end: p,
+                    color: currentColor.current,
+                    thickness: thickness.current,
+                    kind: selectedShape,
+                    pixelated: pixelated,
+                    pixelSize: pixelSize
+                });
+
+                currentShape.current = shape;
+                shape.draw(ctx);
+            });
         }
     }, [selectedShape, redrawAllShapes, pixelated, pixelSize, currentColor, thickness, canvasRef, contextRef]);
 
     const handlePointerUp = useCallback(() => {
-        if(currentShape.current) {
-            drawnShapes.current.push(currentShape.current);
-            redoStackRef.current = [];
-        }
-
-        isDrawing.current = false;
-        currentShape.current = null;
-        const ctx = contextRef.current;
-        if(ctx) {
-            ctx.beginPath();
-            ctx.globalCompositeOperation = 'source-over';
+        if(isDrawing.current) {
+            if(rafId.current !== null) {
+                cancelAnimationFrame(rafId.current);
+                rafId.current = null;
+            }
+            if(currentShape.current) {
+                drawnShapes.current.push(currentShape.current);
+                redoStackRef.current = [];
+            }
+    
+            isDrawing.current = false;
+            currentShape.current = null;
+            const ctx = contextRef.current;
+            if(ctx) {
+                ctx.beginPath();
+                ctx.globalCompositeOperation = 'source-over';
+            }
         }
     }, [contextRef]);
 

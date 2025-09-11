@@ -1,24 +1,15 @@
 import { Shape, type ShapeOptions } from "../types/ShapeTypes";
 import { rasterizePixelatedPolygon, rasterizePolygon } from "../algorithms/PolygonRasterization";
-import { lineInfo, type Point } from "../types/Graphics";
+import { createPolygon, type Point } from "../types/Graphics";
 
-export default class Triangle extends Shape {
-    kind = 'triangle' as const;
+export default class Heptagon extends Shape {
+    kind = 'heptagon' as const;
 
     points: Point[];
 
     constructor(start: Point, end: Point, opts: ShapeOptions) {
         super(opts);
-        const { angle, size } = lineInfo(start, end);
-        
-        this.points = [];
-        for(let i = 0; i < 3; i++) {
-            const adjust = (i * 2 * Math.PI) / 3;
-            this.points.push({
-                x: Math.round(start.x + size * Math.cos(angle + adjust)),
-                y: Math.round(start.y + size * Math.sin(angle + adjust))
-            });
-        }
+        this.points = createPolygon(7, start, end);
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {

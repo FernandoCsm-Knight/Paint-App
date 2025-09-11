@@ -9,7 +9,6 @@ export type PaintContextType = {
     replacementContextRef: RefObject<CanvasRenderingContext2D | null>;
     currentColor: RefObject<string>;
     thickness: RefObject<number>;
-    selectedShape: RefObject<Geometric>;
     
     pixelated: boolean;
     setPixelated: (value: boolean) => void;
@@ -17,7 +16,8 @@ export type PaintContextType = {
     setEraser: (value: boolean) => void;
     isFillActive: boolean;
     setFill: (value: boolean) => void;
-
+    selectedShape: Geometric;
+    setSelectedShape: (value: Geometric) => void;
 };
 
 export const PaintContext = createContext<PaintContextType | undefined>(undefined);

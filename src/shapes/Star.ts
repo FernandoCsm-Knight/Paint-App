@@ -32,6 +32,7 @@ export default class Star extends Shape {
     }
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
+        ctx.fillStyle = this.strokeStyle;
         rasterizePixelatedPolygon(this.points, this.drawPixel.bind(this), ctx);
     }
 
