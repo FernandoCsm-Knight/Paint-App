@@ -1,7 +1,6 @@
 
-import { useContext, useRef, useEffect } from "react";
+import { useContext, useRef } from "react";
 import { PaintContext, type LineAlgorithm, type GridDisplayMode } from "../../context/PaintContext";
-import { MenuContext } from "../../context/MenuContext";
 import GlassCard from "./GlassCard";
 
 const SettingsMenu = () => {
@@ -10,26 +9,7 @@ const SettingsMenu = () => {
         settings
     } = useContext(PaintContext)!;
     
-    const { settingButtonRef, setSettingsMenu } = useContext(MenuContext)!;
     const menuRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Node;
-            
-            if (
-                menuRef.current && 
-                !menuRef.current.contains(target) &&
-                settingButtonRef.current &&
-                !settingButtonRef.current.contains(target)
-            ) {
-                setSettingsMenu(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [setSettingsMenu, settingButtonRef]);
 
     const handlePixelSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const size = parseInt(event.target.value);

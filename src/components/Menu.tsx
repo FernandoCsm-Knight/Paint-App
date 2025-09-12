@@ -30,7 +30,7 @@ const Menu = () => {
                     <ShapesButton/>
                     <FillButton/>
                     <WidthSelector/>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col items-center gap-1">
                         <button
                             onPointerDown={draggable.onPointerDown}
                             className="block cursor-grab active:cursor-grabbing touch-none select-none"
