@@ -6,6 +6,9 @@ export type MenuContextType = {
 
     shapeMenu: boolean;
     setShapeMenu: (value: boolean) => void;
+
+    settingsMenu: boolean;
+    setSettingsMenu: (value: boolean) => void;
 }
 
 export const MenuContext = createContext<MenuContextType | undefined>(undefined);

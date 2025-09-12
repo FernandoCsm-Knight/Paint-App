@@ -1,4 +1,5 @@
 import bresenham from "../algorithms/BresenhamLine";
+import dda from "../algorithms/DDA";
 import type { Point } from "./Graphics";
 import { Shape, type ShapeOptions } from "./ShapeTypes";
 
@@ -49,7 +50,8 @@ export default class FreeForm extends Shape {
         if(this.pixelated) {
             ctx.fillStyle = this.strokeStyle;
             if(!this.contains(p)) {
-                bresenham(lastPoint, p, this.drawPixel.bind(this), ctx);
+                const algorithm = this.lineAlgorithm === 'dda' ? dda : bresenham;
+                algorithm(lastPoint, p, this.drawPixel.bind(this), ctx);
                 this.addPoint(p);
             }
         } else if(distance > 2) {
@@ -76,7 +78,8 @@ export default class FreeForm extends Shape {
     ctx.fillStyle = this.strokeStyle;
 
         for(let i = 0; i < this.points.length - 1; i++) {
-            bresenham(this.points[i], this.points[i + 1], this.drawPixel.bind(this), ctx);
+            const algorithm = this.lineAlgorithm === 'dda' ? dda : bresenham;
+            algorithm(this.points[i], this.points[i + 1], this.drawPixel.bind(this), ctx);
         }
 
     ctx.fillStyle = prev;

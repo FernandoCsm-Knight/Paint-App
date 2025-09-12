@@ -1,4 +1,5 @@
 import type { Geometric, Point } from "./Graphics";
+import type { LineAlgorithm } from "../context/PaintContext";
 
 export type ShapeOptions = {
     strokeStyle?: string;
@@ -7,6 +8,7 @@ export type ShapeOptions = {
     filled?: boolean;
     pixelated?: boolean;
     pixelSize?: number;
+    lineAlgorithm?: LineAlgorithm;
 };
 
 export abstract class Shape {
@@ -17,6 +19,7 @@ export abstract class Shape {
     filled: boolean;
     pixelated: boolean;
     pixelSize: number;
+    lineAlgorithm: LineAlgorithm;
 
     constructor(opts: ShapeOptions) {
         this.strokeStyle = opts.strokeStyle ?? '#000000';
@@ -25,6 +28,7 @@ export abstract class Shape {
         this.filled = opts.filled ?? false;
         this.pixelated = opts.pixelated ?? false;
         this.pixelSize = opts.pixelSize ?? 20;
+        this.lineAlgorithm = opts.lineAlgorithm ?? 'bresenham';
     }
 
     draw(ctx: CanvasRenderingContext2D): void {

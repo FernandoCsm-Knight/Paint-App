@@ -1,4 +1,5 @@
 import type { Point } from "./Graphics";
+import type { LineAlgorithm } from "../context/PaintContext";
 import Line from "../shapes/Line";
 import Circle from "../shapes/Circle";
 import Octagon from "../shapes/Octagon";
@@ -20,93 +21,106 @@ type ShapeGeneratorProps = {
     kind: string;
     pixelated?: boolean;
     pixelSize?: number;
+    lineAlgorithm?: LineAlgorithm;
 };
 
-const generator = ({ start, end, color, thickness, kind, pixelated = false, pixelSize = 20 }: ShapeGeneratorProps) => {
+const generator = ({ start, end, color, thickness, kind, pixelated = false, pixelSize = 20, lineAlgorithm = 'bresenham' }: ShapeGeneratorProps) => {
     switch (kind) {
         case "line":
             return new Line(start, end, { 
                 strokeStyle: color, 
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "square":
             return new Square(start, end, { 
                 strokeStyle: color, 
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "rect":
             return new Rectangle(start, end, { 
                 strokeStyle: color, 
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "circle":
             return new Circle(start, end, { 
                 strokeStyle: color, 
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "arrow":
             return new Arrow(start, end, { 
                 strokeStyle: color, 
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "triangle":
             return new Triangle(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "diamond":
             return new Diamond(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "pentagon":
             return new Pentagon(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "hexagon":
             return new Hexagon(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "heptagon":
             return new Heptagon(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "octagon":
             return new Octagon(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         case "star":
             return new Star(start, end, {
                 strokeStyle: color,
                 lineWidth: thickness,
                 pixelated: pixelated,
-                pixelSize: pixelSize
+                pixelSize: pixelSize,
+                lineAlgorithm: lineAlgorithm
             });
         default:
             throw new Error(`Unknown shape kind: ${kind}`);

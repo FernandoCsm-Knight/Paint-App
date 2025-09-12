@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { PaintContext, type PaintContextType } from "../context/PaintContext";
+import { PaintContext, type PaintContextType, type LineAlgorithm, type GridDisplayMode } from "../context/PaintContext";
 import type { Geometric } from "../types/Graphics";
 
 type PaintProviderProps = {
@@ -12,6 +12,19 @@ const PaintProvider = ({ children }: PaintProviderProps) => {
     const [isFillActive, setFill] = useState<boolean>(false);
     const [selectedShape, setSelectedShape] = useState<Geometric>('freeform');
     
+    const [pixelSize, setPixelSize] = useState<number>(20);
+    const [lineAlgorithm, setLineAlgorithm] = useState<LineAlgorithm>('bresenham');
+    const [gridDisplayMode, setGridDisplayMode] = useState<GridDisplayMode>('behind');
+
+    const paintSettings = {
+        pixelSize: pixelSize,
+        setPixelSize: setPixelSize,
+        lineAlgorithm: lineAlgorithm,
+        setLineAlgorithm: setLineAlgorithm,
+        gridDisplayMode: gridDisplayMode,
+        setGridDisplayMode: setGridDisplayMode
+    };
+
     const paintContext: PaintContextType = {
         canvasRef: useRef<HTMLCanvasElement | null>(null),
         replacementCanvasRef: useRef<HTMLCanvasElement | null>(null),
@@ -28,7 +41,9 @@ const PaintProvider = ({ children }: PaintProviderProps) => {
         isFillActive: isFillActive,
         setFill: setFill,
         selectedShape: selectedShape,
-        setSelectedShape: setSelectedShape
+        setSelectedShape: setSelectedShape,
+
+        settings: paintSettings
     };
 
     return (

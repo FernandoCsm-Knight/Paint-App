@@ -7,13 +7,17 @@ type MenuProviderProps = {
 
 const MenuProvider = ({ children }: MenuProviderProps) => {
     const [shapeMenu, setShapeMenu] = useState<boolean>(false);
+    const [settingsMenu, setSettingsMenu] = useState<boolean>(false);
 
     const menuDefaults: MenuContextType = {
         shapeButtonRef: useRef(null),
         settingButtonRef: useRef(null),
 
         shapeMenu: shapeMenu,
-        setShapeMenu: setShapeMenu
+        setShapeMenu: setShapeMenu,
+
+        settingsMenu: settingsMenu,
+        setSettingsMenu: setSettingsMenu
     };
 
     return(

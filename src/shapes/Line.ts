@@ -1,4 +1,5 @@
 import bresenham from "../algorithms/BresenhamLine";
+import dda from "../algorithms/DDA";
 import type { Point } from "../types/Graphics";
 import { Shape, type ShapeOptions } from "../types/ShapeTypes";
 
@@ -16,7 +17,9 @@ export default class Line extends Shape {
 
     pixelatedDraw(ctx: CanvasRenderingContext2D): void {
         ctx.fillStyle = this.strokeStyle;
-        bresenham(this.start, this.end, this.drawPixel.bind(this), ctx);
+        
+        const algorithm = this.lineAlgorithm === 'dda' ? dda : bresenham;
+        algorithm(this.start, this.end, this.drawPixel.bind(this), ctx);
     }
 
     standardDraw(ctx: CanvasRenderingContext2D): void {

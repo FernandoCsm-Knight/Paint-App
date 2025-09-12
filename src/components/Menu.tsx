@@ -1,4 +1,4 @@
-import { LuGripHorizontal, LuSettings } from "react-icons/lu";
+import { LuGripHorizontal } from "react-icons/lu";
 import { useDraggable } from "../hooks/useDraggable";
 import ColorSelector from "./menu/ColorSelector";
 import EraserButton from "./menu/EraserButton";
@@ -9,9 +9,11 @@ import { useContext } from "react";
 import ShapeSelector from "./menu/ShapeSelector";
 import { MenuContext } from "../context/MenuContext";
 import ShapesButton from "./menu/ShapesButton";
+import SettingsButton from "./menu/SettingsButton";
+import SettingsMenu from "./menu/SettingsMenu";
 
 const Menu = () => {
-    const { settingButtonRef, shapeMenu } = useContext(MenuContext)!;
+    const { shapeMenu, settingsMenu } = useContext(MenuContext)!;
     const draggable = useDraggable({ initial: "center", clamp: true });
 
     return(
@@ -36,18 +38,13 @@ const Menu = () => {
                         >
                             <LuGripHorizontal className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
                         </button>
-                        <button
-                            ref={settingButtonRef}
-                            className="block cursor-pointer"
-                            aria-label="Open settings"
-                        >
-                            <LuSettings className="text-gray-500 sm:h-5 sm:w-5 h-4 w-4"/>
-                        </button>
+                        <SettingsButton/>
                     </div>
                 </div>
             </div>
 
             { shapeMenu ? <ShapeSelector /> : null }
+            { settingsMenu ? <SettingsMenu /> : null }
         </header>
     );
 };
