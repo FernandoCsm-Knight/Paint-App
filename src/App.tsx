@@ -3,7 +3,6 @@ import Menu from './components/Menu'
 import useCanvas from './hooks/useCanvas';
 import MenuProvider from './providers/MenuProvider';
 import { PaintContext } from './context/PaintContext';
-import { ClipboardImageLoader } from './utils/ClipboardImageLoader';
 
 function App() {
     const { canvasRef, replacementCanvasRef, containerRef, settings, isSelectionActive } = useContext(PaintContext)!;
@@ -14,8 +13,8 @@ function App() {
         handlePointerUp,
         undo,
         redo,
-        pasteImage,
-        copyImage
+        pasteSnapshot,
+        copySnapshot
     } = useCanvas();
 
     useEffect(() => {
@@ -34,19 +33,11 @@ function App() {
                     break;
                 case 'v':
                     e.preventDefault();
-                    ClipboardImageLoader.loadImageFromClipboard().then(img => {
-                        pasteImage(img);
-                    });
+                    pasteSnapshot();
                     break;
                 case 'c':
                     e.preventDefault();
-                    copyImage().then(img => {
-                        if(img) {
-                            ClipboardImageLoader.copyImageToClipboard(img).then(() => {
-                                alert('Image copied to clipboard');
-                            });
-                        }
-                    });
+                    copySnapshot();
                     break;
                 default:
             }
@@ -54,7 +45,7 @@ function App() {
 
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [undo, redo, pasteImage, copyImage]);
+    }, [undo, redo, pasteSnapshot, copySnapshot]);
 
     return (
         <>

@@ -3,10 +3,11 @@ import { PaintContext } from "../context/PaintContext";
 import { Shape } from "../types/ShapeTypes";
 import generator from "../types/ShapeGenerator";
 import FreeForm from "../types/FreeForm";
-import ClipboardImage from "../types/ClipboardImage";
-import { ClipboardImageLoader } from "../utils/ClipboardImageLoader";
 import FloodFillShape from "../shapes/FloodFillShape";
 import { map, type Point } from "../types/Graphics";
+import useImage from "./useImage";
+import useSelection from "./useSelection";
+import type ClipboardImage from "../types/ClipboardImage";
 
 const useCanvas = () => {
     const { 
@@ -38,44 +39,22 @@ const useCanvas = () => {
 
     const lastPixelatedMode = useRef<boolean>(pixelated);
 
-    const takeSnapshot = useCallback((): ImageData | null => {
-        const ctx = contextRef.current;
-        return (ctx) ? ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height) : null;
-    }, [contextRef]);
+    const saveCurrentState = useCallback((clipboardImage: ClipboardImage | null, snapshot: ImageData | null) => {
+        if(clipboardImage) drawnShapes.current.push(clipboardImage);
 
-    const restoreSnapshot = useCallback((snapshot: ImageData) => {
-        const ctx = contextRef.current;
-        if(ctx) ctx.putImageData(snapshot, 0, 0);
-    }, [contextRef]);
-
-    const saveCurrentState = useCallback(() => {
-        const snapshot = takeSnapshot();
         if(snapshot) {
             canvasSnapshots.current.push(snapshot);
             currentSnapshot.current = snapshot;
             redoSnapshotsRef.current = [];
         }
-    }, [takeSnapshot]);
+    }, [drawnShapes, canvasSnapshots, currentSnapshot, redoSnapshotsRef]);
 
-    const pasteImage = (image: HTMLImageElement) => {
-        const clipboardImage = new ClipboardImage(image);
-        drawnShapes.current.push(clipboardImage);
-        
-        const ctx = contextRef.current;
-        if(ctx) {
-            clipboardImage.draw(ctx);
-            saveCurrentState();
-        }
-    };
-
-    const copyImage = (): Promise<Blob | null> => {
-        const canvas = canvasRef.current;
-
-        return new Promise((resolve) => {
-            if(canvas) canvas.toBlob((blob) => resolve(blob));
-            else resolve(null);
-        });
-    }
+    const {
+        takeSnapshot,
+        restoreSnapshot,
+        copySnapshot,
+        pasteSnapshot
+    } = useImage(saveCurrentState);
 
     const redrawAllShapes = useCallback(() => {
         const ctx = contextRef.current;
@@ -140,6 +119,12 @@ const useCanvas = () => {
         
         ctx.clearRect(0, 0, width, height);
     }, [replacementContextRef]);
+
+    const {
+        startSelection,
+        updateSelection,
+        stopSelection
+    } = useSelection();
 
     useEffect(() => {
         const setupCanvas = () => {
@@ -225,41 +210,6 @@ const useCanvas = () => {
         if(redoShape) drawnShapes.current.push(redoShape);
     }, [restoreSnapshot]);
 
-    // Selection overlay helpers (drawn on replacement canvas over/under grid)
-    const drawSelectionRect = useCallback((x: number, y: number, w: number, h: number) => {
-        const overlay = replacementContextRef.current;
-        if(!overlay) return;
-        // draw over existing overlay (grid remains if behind)
-        overlay.save();
-        overlay.setLineDash([4, 4]);
-        overlay.lineWidth = 1;
-        overlay.strokeStyle = '#1d4ed8';
-        overlay.fillStyle = 'rgba(59,130,246,0.15)';
-
-        overlay.clearRect(0, 0, overlay.canvas.width, overlay.canvas.height);
-        if(pixelated && settings.gridDisplayMode !== 'none') {
-            redrawGrid(overlay.canvas.width, overlay.canvas.height);
-        }
-
-        overlay.beginPath();
-        overlay.rect(x, y, w, h);
-        overlay.fill();
-        overlay.stroke();
-        overlay.restore();
-    }, [replacementContextRef, redrawGrid, pixelated, settings.gridDisplayMode]);
-
-    const clearSelectionOverlay = useCallback(() => {
-        const overlay = replacementContextRef.current;
-        if(!overlay) return;
-        overlay.clearRect(0, 0, overlay.canvas.width, overlay.canvas.height);
-        if (pixelated && settings.gridDisplayMode !== 'none') {
-            redrawGrid(overlay.canvas.width, overlay.canvas.height);
-        }
-    }, [replacementContextRef, redrawGrid, pixelated, settings.gridDisplayMode]);
-
-    const selectionStart = useRef<Point | null>(null);
-    const selectionEnd = useRef<Point | null>(null);
-
     const handlePointerDown = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
         if(e.button !== 0) return;
 
@@ -275,12 +225,7 @@ const useCanvas = () => {
             start.current = (pixelated) ? map({ x: x, y: y }, settings.pixelSize) : { x: x, y: y };
 
             if(isSelectionActive) {
-                const snap = (v: number) => pixelated ? Math.floor(v / settings.pixelSize) * settings.pixelSize : v;
-                const sx = snap(x);
-                const sy = snap(y);
-                selectionStart.current = { x: sx, y: sy };
-                selectionEnd.current = { x: sx, y: sy };
-                drawSelectionRect(sx, sy, 1, 1);
+                startSelection({ x, y });
                 return;
             }
 
@@ -313,7 +258,7 @@ const useCanvas = () => {
             }
 
         }
-    }, [start, selectedShape, isEraserActive, isFillActive, isSelectionActive, pixelated, settings, currentColor, thickness, canvasRef, contextRef, saveCurrentState, drawSelectionRect]);
+    }, [start, selectedShape, isEraserActive, isFillActive, isSelectionActive, pixelated, settings, currentColor, thickness, canvasRef, contextRef, startSelection]);
 
     const rafId = useRef<number | null>(null);
     const pendingPoint = useRef<Point | null>(null);
@@ -331,55 +276,38 @@ const useCanvas = () => {
         const point = (pixelated) ? map({ x, y }, settings.pixelSize) : { x, y };
 
         if(isSelectionActive) {
-            if(selectionStart.current) {
-                const snap = (v: number) => pixelated ? Math.floor(v / settings.pixelSize) * settings.pixelSize : v;
-                const nx = snap(x);
-                const ny = snap(y);
-                selectionEnd.current = { x: nx, y: ny };
-                const sx = Math.min(selectionStart.current.x, nx);
-                const sy = Math.min(selectionStart.current.y, ny);
-                const w = Math.abs(nx - selectionStart.current.x);
-                const h = Math.abs(ny - selectionStart.current.y);
-                drawSelectionRect(sx, sy, w, h);
-            }
-            return;
-        }
-
-        if(selectedShape === 'freeform') {
+            updateSelection({ x, y });
+        } else if(selectedShape === 'freeform') {
             if(currentShape.current instanceof FreeForm) {
                 currentShape.current.lineTo(point, ctx);
             }
-            return;
-        }
-
-        pendingPoint.current = point;
-        if(rafId.current === null) {
-            rafId.current = requestAnimationFrame(() => {
-                rafId.current = null;
-                const p = pendingPoint.current;
-                if(!p) return;
-                
-                // OTIMIZAÇÃO: Em vez de redesenhar tudo, restaurar snapshot + desenhar forma atual
-                if(currentSnapshot.current) {
-                    restoreSnapshot(currentSnapshot.current);
-                }
-
-                const shape = generator({
-                    start: start.current,
-                    end: p,
-                    color: currentColor.current,
-                    thickness: thickness.current,
-                    kind: selectedShape,
-                    pixelated: pixelated,
-                    pixelSize: settings.pixelSize,
-                    lineAlgorithm: settings.lineAlgorithm
+        } else {
+            pendingPoint.current = point;
+            if(rafId.current === null) {
+                rafId.current = requestAnimationFrame(() => {
+                    rafId.current = null;
+    
+                    if(pendingPoint.current) {
+                        if(currentSnapshot.current) restoreSnapshot(currentSnapshot.current);
+        
+                        const shape = generator({
+                            start: start.current,
+                            end: pendingPoint.current,
+                            color: currentColor.current,
+                            thickness: thickness.current,
+                            kind: selectedShape,
+                            pixelated: pixelated,
+                            pixelSize: settings.pixelSize,
+                            lineAlgorithm: settings.lineAlgorithm
+                        });
+        
+                        currentShape.current = shape;
+                        shape.draw(ctx);
+                    }
                 });
-
-                currentShape.current = shape;
-                shape.draw(ctx);
-            });
+            }   
         }
-    }, [selectedShape, restoreSnapshot, isSelectionActive, pixelated, settings, currentColor, thickness, canvasRef, contextRef, drawSelectionRect]);
+    }, [selectedShape, restoreSnapshot, isSelectionActive, pixelated, settings, currentColor, thickness, canvasRef, contextRef, updateSelection]);
 
     const handlePointerUp = useCallback(() => {
         if(isDrawing.current) {
@@ -387,49 +315,13 @@ const useCanvas = () => {
                 cancelAnimationFrame(rafId.current);
                 rafId.current = null;
             }
-            if(isSelectionActive && selectionStart.current && selectionEnd.current) {
-                const ctx = contextRef.current;
-                if(ctx) {
-                    // compute selection rect
-                    const sx = Math.min(selectionStart.current.x, selectionEnd.current.x);
-                    const sy = Math.min(selectionStart.current.y, selectionEnd.current.y);
-                    const sw = Math.abs(selectionEnd.current.x - selectionStart.current.x);
-                    const sh = Math.abs(selectionEnd.current.y - selectionStart.current.y);
-
-                    if (sw > 1 && sh > 1) {
-                        // Extract image data and draw onto a temp canvas, then copy to clipboard
-                        const imageData = ctx.getImageData(sx, sy, sw, sh);
-                        const temp = document.createElement('canvas');
-                        temp.width = sw; temp.height = sh;
-                        const tctx = temp.getContext('2d');
-                        if(tctx) {
-                            tctx.putImageData(imageData, 0, 0);
-                            temp.toBlob(async (blob) => {
-                                try {
-                                    if(blob) {
-                                        await ClipboardImageLoader.copyImageToClipboard(blob);
-                                        alert('Seleção copiada para a área de transferência');
-                                    }
-                                } catch (err) {
-                                    // Fallback: open image in a new tab for manual save
-                                    const url = temp.toDataURL();
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = 'recorte.png';
-                                    a.click();
-                                } finally {
-                                    clearSelectionOverlay();
-                                }
-                            }, 'image/png');
-                        }
-                    }
-                }
-                selectionStart.current = null;
-                selectionEnd.current = null;
+            
+            if(isSelectionActive) {
+                stopSelection();
             } else if(currentShape.current) {
                 drawnShapes.current.push(currentShape.current);
                 redoStackRef.current = [];
-                saveCurrentState();
+                saveCurrentState(null, takeSnapshot());
             }
     
             isDrawing.current = false;
@@ -440,7 +332,7 @@ const useCanvas = () => {
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
-    }, [contextRef, saveCurrentState, isSelectionActive, clearSelectionOverlay]);
+    }, [contextRef, saveCurrentState, isSelectionActive, stopSelection, takeSnapshot]);
 
     return {
         handlePointerDown,
@@ -448,8 +340,8 @@ const useCanvas = () => {
         handlePointerUp,
         undo,
         redo,
-        pasteImage,
-        copyImage
+        pasteSnapshot,
+        copySnapshot
     };
 };
 
