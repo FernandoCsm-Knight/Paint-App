@@ -63,13 +63,13 @@ export const useDraggable = (options: DraggableOptions = {}) => {
         const element = targetRef.current;
         if (!element) return;
 
-        const resizeObserver = new ResizeObserver(() => {
+        // Usa window resize em vez de ResizeObserver para evitar disparo constante
+        const handleWindowResize = () => {
             setPosition((prev: Point) => (onResize) ? onResize(prev) : clampToViewport(prev.x, prev.y));
-        });
+        };
 
-        resizeObserver.observe(document.body);
-
-        return () => resizeObserver.disconnect();
+        window.addEventListener('resize', handleWindowResize);
+        return () => window.removeEventListener('resize', handleWindowResize);
     }, [clampToViewport, onResize]);
 
     const onPointerDown: DraggableHandle = useCallback((e) => {

@@ -6,9 +6,11 @@ import { PaintContext } from './context/PaintContext';
 import { ReplacementContext } from './context/ReplacementContext';
 import { SettingsContext } from './context/SettingsContext';
 import PageSizeEraser from './components/PageSizeEraser';
+import ModeManager from './components/ModeManager';
 
 function App() {
-    const { canvasRef, containerRef, isSelectionActive } = useContext(PaintContext)!;
+    const paintContext = useContext(PaintContext)!;
+    const { canvasRef, containerRef, isSelectionActive } = paintContext;
     const { replacementCanvasRef } = useContext(ReplacementContext)!;
     const { gridDisplayMode, pageSizeEraser } = useContext(SettingsContext)!;
 
@@ -19,8 +21,13 @@ function App() {
         undo,
         redo,
         pasteSnapshot,
-        copySnapshot
+        copySnapshot,
+        saveSnapshot
     } = useCanvas();
+
+    useEffect(() => {
+        paintContext.saveSnapshot = saveSnapshot;
+    }, [paintContext, saveSnapshot]);
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -54,6 +61,7 @@ function App() {
 
     return (
         <>
+            <ModeManager />
             <MenuProvider>
                 <Menu />
             </MenuProvider>

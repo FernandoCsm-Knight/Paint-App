@@ -18,6 +18,8 @@ export type PaintContextType = {
     setSelectionActive: (value: boolean) => void;
     selectedShape: Geometric;
     setSelectedShape: (value: Geometric) => void;
+    
+    saveSnapshot?: () => void;
 };
 
 export const PaintContext = createContext<PaintContextType | undefined>(undefined);

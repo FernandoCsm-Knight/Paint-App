@@ -5,7 +5,7 @@ import { PaintContext } from "../context/PaintContext";
 import type { Point } from "../types/Graphics";
 
 const PageSizeEraser = () => {
-    const { canvasRef, contextRef } = useContext(PaintContext)!;
+    const { canvasRef, contextRef, saveSnapshot } = useContext(PaintContext)!;
     const [isActive, setIsActive] = useState(false);
     const [previewHeight, setPreviewHeight] = useState(0);
     
@@ -45,21 +45,15 @@ const PageSizeEraser = () => {
         eraseFromTop({ x: point.x, y: clampedY });
     };
 
-    const handleResize = (prev: Point): Point => {
-        const centerX = window.innerWidth / 2;
-        const minY = 0;
-        const maxY = window.innerHeight - 20;
-        
-        return {
-            x: centerX,
-            y: Math.min(Math.max(minY, prev.y), maxY)
-        };
+    const handleResize = (): Point => {
+        return getInitialPosition();
     };
 
     const handleDragEnd = () => {
         setIsActive(false);
         setPreviewHeight(0);
         setPosition(getInitialPosition());
+        if(saveSnapshot) saveSnapshot();
     }
 
     const { ref, onPointerDown, style, setPosition } = useDraggable({

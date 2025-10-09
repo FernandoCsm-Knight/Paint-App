@@ -246,6 +246,10 @@ const useCanvas = () => {
         }
     }, [isSelectionActive, contextRef, stopSelection, saveCurrentState, takeSnapshot]);
 
+    const saveSnapshot = useCallback(() => {
+        saveCurrentState(takeSnapshot());
+    }, [saveCurrentState, takeSnapshot]);
+
     return {
         handlePointerDown,
         handlePointerMove,
@@ -253,7 +257,8 @@ const useCanvas = () => {
         undo,
         redo,
         pasteSnapshot,
-        copySnapshot
+        copySnapshot,
+        saveSnapshot
     };
 };
 
