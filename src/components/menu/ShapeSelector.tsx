@@ -32,7 +32,7 @@ const ShapeSelector = () => {
     }, [ selectedShape, setSelectedShape ]);
 
     return (
-        <GlassCard initial={{ x: x, y: y + height + 10 }}>
+        <GlassCard initial={() => ({ x: x, y: y + height + 10 })}>
             <div className="px-3 pt-3 sm:px-4 sm:pt-4">
                 <div className="bg-gray-200 shadow-lg rounded-xl overflow-hidden p-3">
                     <div className="scrollbar overflow-y-auto grid grid-cols-3 gap-2 py-2 sm:py-3 pr-2 sm:pr-3 pl-2 sm:pl-3 sm:gap-3 max-h-28 sm:max-h-41">

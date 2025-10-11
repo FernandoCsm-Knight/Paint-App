@@ -3,7 +3,7 @@ import { PaintContext } from "../context/PaintContext";
 import { Shape } from "../types/ShapeTypes";
 import generator from "../types/ShapeGenerator";
 import FreeForm from "../types/FreeForm";
-import FloodFillShape from "../shapes/FloodFillShape";
+import FillShape from "../shapes/FillShape";
 import { map, type Point } from "../types/Graphics";
 import useImage from "./useImage";
 import useSelection from "./useSelection";
@@ -145,7 +145,7 @@ const useCanvas = () => {
             if(isSelectionActive) {
                 startSelection({ x, y });
             } else if(isFillActive) {
-                const floodFillShape = new FloodFillShape({
+                const fillShape = new FillShape({
                     point: start.current,
                     strokeStyle: currentColor.current,
                     isEraser: isEraserActive,
@@ -153,8 +153,8 @@ const useCanvas = () => {
                     pixelSize: pixelSize
                 });
                 
-                floodFillShape.draw(ctx);
-                currentShape.current = floodFillShape;
+                fillShape.draw(ctx);
+                currentShape.current = fillShape;
             } else {
                 if(selectedShape === 'freeform') {
                     const form = new FreeForm([start.current], {

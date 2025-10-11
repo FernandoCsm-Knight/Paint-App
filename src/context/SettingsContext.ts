@@ -1,5 +1,6 @@
 import { createContext } from "react";
 
+export type FillAlgorithm = "floodfill" | "scanline";
 export type LineAlgorithm = "bresenham" | "dda";
 export type GridDisplayMode = "behind" | "front" | "none";
 

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import type { Point } from "../../types/Graphics";
 
 type GlassCardProps = {
-    initial: Point
+    initial: () => Point;
     children?: ReactNode;
 }
 

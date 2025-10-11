@@ -35,7 +35,7 @@ export default class FloodFill {
         const isTransparentSeed = seed.a < 250;
         if(isTransparentSeed || !isSameColor(seed, fillColorRgb, 0)) {
             if(pixelated) {
-                this.floodFillPixelated(
+                this.pixelated(
                     ctx,
                     data,
                     point,
@@ -46,7 +46,7 @@ export default class FloodFill {
                     isEraser
                 );
             } else {
-                this.floodFillStandard(
+                this.standard(
                     ctx,
                     data,
                     center,
@@ -59,7 +59,7 @@ export default class FloodFill {
         }
     }
 
-    private static floodFillStandard(
+    private static standard(
         ctx: CanvasRenderingContext2D,
         data: Uint8ClampedArray,
         start: Point,
@@ -123,7 +123,7 @@ export default class FloodFill {
         ctx.globalCompositeOperation = gco;
     }
     
-    private static floodFillPixelated(
+    private static pixelated(
         ctx: CanvasRenderingContext2D,
         data: Uint8ClampedArray,
         start: Point, 

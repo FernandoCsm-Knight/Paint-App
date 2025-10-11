@@ -8,44 +8,55 @@ const PageSizeEraser = () => {
     const { canvasRef, contextRef, saveSnapshot } = useContext(PaintContext)!;
     const [isActive, setIsActive] = useState(false);
     const [previewHeight, setPreviewHeight] = useState(0);
-    
+
     const getInitialPosition = (): Point => ({
-        x: window.innerWidth / 2,
-        y: window.innerHeight - 40
+        x: window.scrollX || window.pageXOffset,
+        y: Math.abs(window.scrollY || window.pageYOffset) + window.innerHeight - 40
     });
 
-    const eraseFromTop = (point: Point) => {
+    const eraseFromBottom = (pointPage: Point) => {
         const canvas = canvasRef.current;
         const ctx = contextRef.current;
-        
         if(!canvas || !ctx) return;
-        
-        const canvasRect = canvas.getBoundingClientRect();
-        const relativeY = point.y - canvasRect.top + 20;
-        
-        setPreviewHeight(canvas.height - relativeY);
-        
-        if(relativeY > 0 && relativeY < canvas.height) {
-            ctx.clearRect(0, relativeY, canvas.width, canvas.height - relativeY);
+
+        const scrollY = window.scrollY || window.pageYOffset;
+        const handleYViewport = pointPage.y - scrollY;
+        const viewportBottom = window.innerHeight - 40;
+
+        const previewH = Math.max(0, viewportBottom - handleYViewport);
+        setPreviewHeight(previewH);
+
+        // Intersect the erase band [handleYViewport, viewportBottom] with the canvas rect
+        const rect = canvas.getBoundingClientRect();
+        const bandTop = Math.max(handleYViewport, rect.top);
+        const bandBottom = Math.min(viewportBottom, rect.bottom);
+        const overlapViewport = Math.max(0, bandBottom - bandTop);
+        if (overlapViewport <= 0) return; // nothing to clear on the canvas
+
+        // Convert viewport CSS pixels to canvas pixel coordinates
+        const scaleY = canvas.height / rect.height;
+        const overlapCanvas = overlapViewport * scaleY;
+        // Distance from canvas bottom upwards
+        const distanceFromCanvasBottomViewport = Math.max(0, rect.bottom - bandBottom);
+        const yFromCanvasBottom = distanceFromCanvasBottomViewport * scaleY;
+
+        const clampedHeight = Math.min(overlapCanvas, canvas.height);
+        if (clampedHeight > 0) {
+            ctx.clearRect(0, canvas.height - yFromCanvasBottom - clampedHeight + 20, canvas.width, clampedHeight);
         }
     };
 
     const handleDrag = (point: Point) => {
-        const minY = 0;
-        const maxY = window.innerHeight - 20;
+        const minY = window.scrollY || window.pageYOffset;
+        const maxY = (window.scrollY || window.pageYOffset) + window.innerHeight - 40;
         const clampedY = Math.min(Math.max(minY, point.y), maxY);
-        
-        if (clampedY !== point.y) {
-            setPosition((prev) => ({
-                x: prev.x,
-                y: clampedY
-            }));
-        }
-        
-        eraseFromTop({ x: point.x, y: clampedY });
+
+        if(clampedY !== point.y) setPosition((prev) => ({ x: prev.x, y: clampedY }));
+
+        eraseFromBottom({ x: point.x, y: clampedY });
     };
 
-    const handleResize = (): Point => {
+    const handleResizeAndScroll = (): Point => {
         return getInitialPosition();
     };
 
@@ -57,25 +68,22 @@ const PageSizeEraser = () => {
     }
 
     const { ref, onPointerDown, style, setPosition } = useDraggable({
-        initial: getInitialPosition(),
+        initial: getInitialPosition,
         axis: "y",
         clamp: true,
         onDragStart: () => setIsActive(true),
-
+        onDrag: handleDrag,
         onDragEnd: handleDragEnd,
-        onResize: handleResize
+        onResize: handleResizeAndScroll,
+        onScroll: handleResizeAndScroll
     });
 
     return (
-        <div 
-        ref={ref}
-        onPointerDown={onPointerDown}
-        style={{...style, transition: isActive ? 'none' : 'top 0.3s ease-out, left 0.3s ease-out'}}
-        className="flex items-center justify-center w-full min-w-[100vw] absolute">
+        <>
             {isActive && previewHeight > 0 && (
                 <div 
                     style={{
-                        position: 'absolute',
+                        position: 'fixed',
                         bottom: 0,
                         left: 0,
                         right: 0,
@@ -88,27 +96,32 @@ const PageSizeEraser = () => {
                 />
             )}
 
-            <div 
-                className={`
-                    w-full 
-                    z-50
-                    flex 
-                    justify-between 
-                    items-center 
-                    rounded-xl 
-                    shadow-lg 
-                    backdrop-blur-sm 
-                    max-w-[95vw] 
-                    max-h-[95vh] 
-                    overflow-hidden
-
-                    ${isActive ? 'bg-red-400/40 cursor-grabbing' : 'bg-gray-200/30 cursor-grab hover:bg-gray-300/40'}
-                `}>
-                <div className={`grow border-t-2 rounded-2xl mx-4 transition-colors ${isActive ? 'border-red-500' : 'border-gray-400'}`}></div>
-                <LuGripHorizontal className={`transition-colors ${isActive ? 'text-red-600' : 'text-gray-500'} sm:h-5 sm:w-5 h-4 w-4`}/>
-                <div className={`grow border-t-2 rounded-2xl mx-4 transition-colors ${isActive ? 'border-red-500' : 'border-gray-400'}`}></div>
+            <div
+            ref={ref}
+            onPointerDown={onPointerDown}
+            style={{...style, transition: isActive ? 'none' : 'top 0.3s ease-out, left 0.3s ease-out'}}
+            className="flex items-center justify-center w-full min-w-[100vw] absolute">
+                <div
+                    className={`
+                        w-full
+                        z-50
+                        flex
+                        justify-between
+                        items-center
+                        rounded-xl
+                        shadow-lg
+                        backdrop-blur-sm
+                        max-w-[95vw]
+                        max-h-[95vh]
+                        overflow-hidden
+                        ${isActive ? 'bg-red-400/40 cursor-grabbing' : 'bg-gray-200/30 cursor-grab hover:bg-gray-300/40'}
+                    `}>
+                    <div className={`grow border-t-2 rounded-2xl mx-4 transition-colors ${isActive ? 'border-red-500' : 'border-gray-400'}`}></div>
+                    <LuGripHorizontal className={`transition-colors ${isActive ? 'text-red-600' : 'text-gray-500'} sm:h-5 sm:w-5 h-4 w-4`}/>
+                    <div className={`grow border-t-2 rounded-2xl mx-4 transition-colors ${isActive ? 'border-red-500' : 'border-gray-400'}`}></div>
+                </div>
             </div>
-        </div>
+        </>
     );
 
 };

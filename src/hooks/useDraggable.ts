@@ -5,7 +5,7 @@ import type React from "react";
 type DraggableHandle = (e: React.PointerEvent<HTMLElement>) => void;
 
 export type DraggableOptions = {
-  initial?: Point | "center";
+  initial?: () => Point;
   clamp?: boolean;
   axis?: "x" | "y" | "both";
 
@@ -13,6 +13,7 @@ export type DraggableOptions = {
   onDragEnd?: (pos: Point) => void;
   onDrag?: (pos: Point) => void;
   onResize?: (prev: Point) => Point;
+  onScroll?: (prev: Point) => Point;
 };
 
 export type UseDraggableReturn = {
@@ -24,13 +25,13 @@ export type UseDraggableReturn = {
 }
 
 export const useDraggable = (options: DraggableOptions = {}) => {
-    const { initial = { x: 0, y: 0 }, clamp = true, axis = "both", onDragStart, onDragEnd, onDrag, onResize } = options;
+    const { initial, clamp = true, axis = "both", onDragStart, onDragEnd, onDrag, onResize, onScroll } = options;
 
-    const [position, setPosition] = useState<Point>(() => (initial === "center" ? { x: 0, y: 20 } : initial));
+    const initialPos: Point = initial ? initial() : { x: 0, y: 20 }; 
+
+    const [position, setPosition] = useState<Point>(initialPos);
     const targetRef = useRef<HTMLDivElement | null>(null);
     const dragOffsetRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
-    const posRef = useRef<Point>(position);
-    const initialPosRef = useRef<Point>(position);
 
     const clampToViewport = useCallback((x: number, y: number): Point => {
         if (!clamp) return { x, y };
@@ -53,11 +54,7 @@ export const useDraggable = (options: DraggableOptions = {}) => {
     }, [clamp]);
 
     useEffect(() => {
-        posRef.current = position;
-    }, [position]);
-
-    useEffect(() => {
-        if (initial !== "center") return;
+        if (initial) return;
         const el = targetRef.current;
         if (!el) return;
         const rect = el.getBoundingClientRect();
@@ -87,12 +84,12 @@ export const useDraggable = (options: DraggableOptions = {}) => {
         if (!element) return;
 
         const handleWindowScroll = () => {
-            setPosition((prev: Point) => clampToViewport(prev.x, prev.y));
+            setPosition((prev: Point) => (onScroll) ? onScroll(prev) : clampToViewport(prev.x, prev.y));
         };
 
         window.addEventListener('scroll', handleWindowScroll);
         return () => window.removeEventListener('scroll', handleWindowScroll);
-    }, [clampToViewport]);
+    }, [clampToViewport, onScroll]);
 
     const onPointerDown: DraggableHandle = useCallback((e) => {
         e.preventDefault();
@@ -105,7 +102,6 @@ export const useDraggable = (options: DraggableOptions = {}) => {
             dy: e.clientY - rect.top,
         };
 
-        initialPosRef.current = { ...posRef.current };
         const handlePointerMove = (ev: PointerEvent) => {
             const currentScrollX = window.scrollX || window.pageXOffset;
             const currentScrollY = window.scrollY || window.pageYOffset;
@@ -113,8 +109,8 @@ export const useDraggable = (options: DraggableOptions = {}) => {
             let nx = ev.clientX + currentScrollX - dragOffsetRef.current.dx;
             let ny = ev.clientY + currentScrollY - dragOffsetRef.current.dy;
 
-            if(axis === "x") ny = initialPosRef.current.y;
-            else if (axis === "y") nx = initialPosRef.current.x;
+            if(axis === "x") ny = position.y;
+            else if (axis === "y") nx = position.x;
 
             const next = clampToViewport(nx, ny);
             setPosition(next);
@@ -124,13 +120,13 @@ export const useDraggable = (options: DraggableOptions = {}) => {
         const handlePointerUp = () => {
             window.removeEventListener("pointermove", handlePointerMove);
             window.removeEventListener("pointerup", handlePointerUp);
-            onDragEnd?.(posRef.current);
+            onDragEnd?.(position);
         };
 
         onDragStart?.();
         window.addEventListener("pointermove", handlePointerMove);
         window.addEventListener("pointerup", handlePointerUp);
-    }, [clampToViewport, onDragEnd, onDragStart, axis, onDrag]);
+    }, [clampToViewport, onDragEnd, onDragStart, axis, onDrag, position]);
 
     return {
         ref: targetRef as RefObject<HTMLDivElement>,

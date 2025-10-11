@@ -15,7 +15,7 @@ import SelectionButton from "./menu/SelectionButton";
 
 const Menu = () => {
     const { shapeMenu, settingsMenu } = useContext(MenuContext)!;
-    const draggable = useDraggable({ initial: "center", clamp: true });
+    const draggable = useDraggable({ clamp: true });
 
     return(
         <header>
