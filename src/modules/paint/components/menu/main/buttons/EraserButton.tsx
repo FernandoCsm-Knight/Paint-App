@@ -23,7 +23,7 @@ const EraserButton = () => {
             active={isEraserActive}
             ariaLabel={isEraserActive ? "Desativar borracha" : "Ativar borracha"}
         >
-            <LuEraser className="w-4 h-4 sm:w-5 sm:h-5" />
+            <LuEraser className="paint-icon" />
         </PaintButton>
     );
 };

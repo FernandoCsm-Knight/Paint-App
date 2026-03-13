@@ -21,9 +21,9 @@ const WidthSelector = () => {
     }, [thickness]);
 
     return(
-        <label className="flex items-center flex-col gap-1 sm:gap-2 min-w-0 flex-shrink">
-            <span className="paint-value-chip px-1.5 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm whitespace-nowrap">width {lineWidth}</span>
-            <input type="range" min="1" max={pixelated ? "5" :"100"} step="1" value={lineWidth} onChange={(e) => {onLineWidthChange(Number.parseInt(e.target.value))}} className="slider w-20 sm:w-32 h-2 rounded-lg cursor-pointer" />
+        <label className="flex items-center gap-[var(--pm-gap)] min-w-0 w-full">
+            <span className="paint-value-chip px-[var(--pm-btn-pad)] py-0.5 text-center rounded-md w-15 text-[var(--pm-text-xs)] whitespace-nowrap text-xs">{lineWidth}</span>
+            <input type="range" min="1" max={pixelated ? "5" :"100"} step="1" value={lineWidth} onChange={(e) => {onLineWidthChange(Number.parseInt(e.target.value))}} className="grow slider h-2 rounded-lg cursor-pointer" />
         </label>
     );
 };

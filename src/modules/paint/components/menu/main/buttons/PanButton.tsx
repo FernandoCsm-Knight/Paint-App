@@ -28,7 +28,7 @@ const PanButton = () => {
             active={isPanModeActive}
             ariaLabel={isPanModeActive ? "Desativar arraste do canvas" : "Ativar arraste do canvas"}
         >
-            <LuHand className="w-4 h-4 sm:w-5 sm:h-5" />
+            <LuHand className="paint-icon" />
         </PaintButton>
     );
 };

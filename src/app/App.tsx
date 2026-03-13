@@ -36,7 +36,7 @@ const App = () => {
                     />
 
                     <div className="theme-workspace-gradient absolute inset-0" />
-                    <div className="relative h-full min-h-0 pt-16 lg:pt-0">
+                    <div className="relative h-full min-h-0">
                         <ActiveSurface />
                     </div>
                 </main>

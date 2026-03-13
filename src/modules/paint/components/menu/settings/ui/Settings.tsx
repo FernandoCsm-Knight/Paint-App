@@ -21,10 +21,10 @@ const Settings = ({ children }: { children: ReactNode }) => {
 
     return (
         <GlassCard initial={getInitialPos}>
-            <section className="p-4">
-                <h3 className="paint-panel-title-on-dark text-sm sm:text-lg font-semibold mb-4">Configurações</h3>
-                <div className="px-2 max-h-64 max-w-64 sm:max-h-80 sm:max-w-80 min-w-50 overflow-y-auto">
-                    <ul className="paint-panel-text-on-dark flex flex-col gap-3 sm:gap-4 text-xs sm:text-sm font-medium">
+            <section className="p-[var(--pm-pad)]">
+                <h3 className="paint-panel-title-on-dark text-[clamp(0.8rem,1.4vw,1.125rem)] font-semibold mb-[var(--pm-pad)]">Configurações</h3>
+                <div className="px-[var(--pm-btn-pad)] max-h-[clamp(16rem,35vh,20rem)] max-w-[clamp(16rem,30vw,20rem)] min-w-[clamp(12rem,20vw,16rem)] overflow-y-auto">
+                    <ul className="paint-panel-text-on-dark flex flex-col gap-[var(--pm-gap)] text-[var(--pm-text-sm)] font-medium">
                         {children}
                     </ul>
                 </div>

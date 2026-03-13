@@ -15,7 +15,7 @@ const ShapesButton = () => {
 
     return (
         <PaintButton ref={shapeButtonRef} onClick={onMenuToggle} stayActive>
-            <LuShapes className="w-4 h-4 sm:w-5 sm:h-5"/>
+            <LuShapes className="paint-icon"/>
         </PaintButton>
     );
 };

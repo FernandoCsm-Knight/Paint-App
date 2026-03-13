@@ -4,39 +4,51 @@ import { useContext, useState } from "react";
 import { PaintContext } from "../context/PaintContext";
 import type { Point } from "../types/Graphics";
 
+const HANDLE_HEIGHT = 40;
+
 const PageSizeEraser = () => {
-    const { canvasRef, contextRef, renderViewport, saveSnapshot, viewOffset, zoom } = useContext(PaintContext)!;
+    const { canvasRef, containerRef, contextRef, renderViewport, saveSnapshot, viewOffset, zoom } = useContext(PaintContext)!;
     const [isActive, setIsActive] = useState(false);
     const [previewHeight, setPreviewHeight] = useState(0);
 
+    const getContainerMetrics = () => {
+        const container = containerRef.current;
+
+        return {
+            width: container?.clientWidth ?? 0,
+            height: container?.clientHeight ?? 0,
+        };
+    };
+
     const getInitialPosition = (): Point => ({
-        x: window.scrollX || window.pageXOffset,
-        y: Math.abs(window.scrollY || window.pageYOffset) + window.innerHeight - 40
+        x: 0,
+        y: Math.max(0, getContainerMetrics().height - HANDLE_HEIGHT),
     });
 
-    const eraseFromBottom = (pointPage: Point) => {
+    const eraseFromBottom = (point: Point) => {
         const viewportCanvas = canvasRef.current;   // on-screen canvas (for position)
+        const container = containerRef.current;
         const ctx = contextRef.current;
-        if(!viewportCanvas || !ctx) return;
+        if(!viewportCanvas || !container || !ctx) return;
 
         const docCanvas = ctx.canvas;               // off-screen document canvas (for dimensions)
-
-        const scrollY = window.scrollY || window.pageYOffset;
-        const handleYViewport = pointPage.y - scrollY;
-        const viewportBottom = window.innerHeight - 40;
-
-        const previewH = Math.max(0, viewportBottom - handleYViewport);
+        const containerRect = container.getBoundingClientRect();
+        const rect = viewportCanvas.getBoundingClientRect();
+        const containerHeight = container.clientHeight;
+        const eraseTop = Math.max(0, Math.min(containerHeight, point.y + HANDLE_HEIGHT));
+        const previewH = Math.max(0, containerHeight - eraseTop);
         setPreviewHeight(previewH);
 
-        // Intersect the erase band [handleYViewport, viewportBottom] with the canvas rect
-        const rect = viewportCanvas.getBoundingClientRect();
-        const bandTop = Math.max(handleYViewport, rect.top);
-        const bandBottom = Math.min(viewportBottom, rect.bottom);
+        // Intersect the erase band [eraseTop, container bottom] with the canvas rect
+        const canvasTop = rect.top - containerRect.top;
+        const canvasBottom = canvasTop + rect.height;
+        const bandTop = Math.max(eraseTop, canvasTop);
+        const bandBottom = Math.min(containerHeight, canvasBottom);
         const overlapViewport = Math.max(0, bandBottom - bandTop);
         if (overlapViewport <= 0) return; // nothing to clear on the canvas
 
-        const localTop = bandTop - rect.top;
-        const localBottom = bandBottom - rect.top;
+        const localTop = bandTop - canvasTop;
+        const localBottom = bandBottom - canvasTop;
         const worldTop = Math.max(0, (-viewOffset.y + localTop) / zoom);
         const worldBottom = Math.min(docCanvas.height, (-viewOffset.y + localBottom) / zoom);
         const clearHeight = Math.max(0, worldBottom - worldTop);
@@ -48,13 +60,14 @@ const PageSizeEraser = () => {
     };
 
     const handleDrag = (point: Point) => {
-        const minY = window.scrollY || window.pageYOffset;
-        const maxY = (window.scrollY || window.pageYOffset) + window.innerHeight - 40;
+        const { height } = getContainerMetrics();
+        const minY = 0;
+        const maxY = Math.max(0, height - HANDLE_HEIGHT);
         const clampedY = Math.min(Math.max(minY, point.y), maxY);
 
         if(clampedY !== point.y) setPosition((prev) => ({ x: prev.x, y: clampedY }));
 
-        eraseFromBottom({ x: point.x, y: clampedY });
+        eraseFromBottom({ x: 0, y: clampedY });
     };
 
     const handleResizeAndScroll = (): Point => {
@@ -72,6 +85,7 @@ const PageSizeEraser = () => {
         initial: getInitialPosition,
         axis: "y",
         clamp: true,
+        referenceFrame: "offsetParent",
         onDragStart: () => setIsActive(true),
         onDrag: handleDrag,
         onDragEnd: handleDragEnd,
@@ -84,7 +98,7 @@ const PageSizeEraser = () => {
             {isActive && previewHeight > 0 && (
                 <div 
                     style={{
-                        position: 'fixed',
+                        position: 'absolute',
                         bottom: 0,
                         left: 0,
                         right: 0,
@@ -101,7 +115,7 @@ const PageSizeEraser = () => {
             ref={ref}
             onPointerDown={onPointerDown}
             style={{...style, transition: isActive ? 'none' : 'top 0.3s ease-out, left 0.3s ease-out'}}
-            className="flex items-center justify-center w-full min-w-[100vw] absolute">
+            className="absolute inset-x-0 flex items-center justify-center w-full">
                 <div
                     className={`
                         w-full

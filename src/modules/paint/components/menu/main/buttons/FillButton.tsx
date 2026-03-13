@@ -23,7 +23,7 @@ const FillButton = () => {
 
     return (
         <PaintButton onClick={handleClick} stayActive active={isFillActive}>
-            <LuPaintBucket className="w-4 h-4 sm:w-5 sm:h-5"/>
+            <LuPaintBucket className="paint-icon"/>
         </PaintButton>
     );
 };

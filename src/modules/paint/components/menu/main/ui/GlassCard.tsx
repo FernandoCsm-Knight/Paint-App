@@ -25,7 +25,7 @@ const GlassCard = ({ initial, children }: GlassCardProps) => {
                     className="block cursor-grab pr-2 pb-2 active:cursor-grabbing touch-none select-none"
                     aria-label="Drag to move"
                 >
-                    <LuGripHorizontal className="paint-drag-handle sm:h-5 sm:w-5 h-4 w-4"/>
+                    <LuGripHorizontal className="paint-drag-handle paint-icon"/>
                 </button>
             </div>
         </section>

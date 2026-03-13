@@ -23,10 +23,10 @@ const PixelatedSettings = () => {
     return (
         <Settings>
             <li>
-                <label className="block mb-2">
+                <label className="block mb-[var(--pm-gap)]">
                     Tamanho do Pixel
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-[var(--pm-gap)]">
                     <input
                         type="range"
                         min="5"
@@ -36,25 +36,25 @@ const PixelatedSettings = () => {
                         onChange={handlePixelSizeChange}
                         className="slider flex-1 h-2 rounded-lg appearance-none cursor-pointer"
                     />
-                    <span className="paint-value-chip text-sm font-mono px-2 py-1 rounded min-w-[3rem] text-center">
+                    <span className="paint-value-chip text-[var(--pm-text-sm)] font-mono px-[var(--pm-btn-pad)] py-0.5 rounded min-w-[3rem] text-center">
                         {pixelSize}px
                     </span>
                 </div>
             </li>
 
             <li>
-                <label className="block mb-2">
+                <label className="block mb-[var(--pm-gap)]">
                     Algoritmo de Linha
                 </label>
                 <select
                     value={lineAlgorithm}
                     onChange={handleLineAlgorithmChange}
-                    className="paint-input w-full p-2 rounded-md text-sm"
+                    className="paint-input w-full p-[var(--pm-btn-pad)] rounded-md text-[var(--pm-text-sm)]"
                 >
                     <option value="bresenham">Bresenham</option>
                     <option value="dda">DDA (Digital Differential Analyzer)</option>
                 </select>
-                <div className="paint-panel-muted-on-dark text-xs mt-1">
+                <div className="paint-panel-muted-on-dark text-[var(--pm-text-xs)] mt-1">
                     {lineAlgorithm === 'bresenham' 
                         ? 'Algoritmo mais preciso e eficiente para rasterização'
                         : 'Algoritmo simples baseado em interpolação linear'

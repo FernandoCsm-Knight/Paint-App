@@ -17,7 +17,7 @@ const StandardSettings = () => {
                     onChange={() => setPageSizeEraser(!pageSizeEraser)} 
                     type="checkbox" 
                     checked={pageSizeEraser} 
-                    className="cursor-pointer w-4 h-4 sm:w-5 sm:h-5"
+                    className="cursor-pointer w-[var(--pm-icon)] h-[var(--pm-icon)]"
                 />
             </li>
             <GridSettings descriptionPrefix="do traco livre" />

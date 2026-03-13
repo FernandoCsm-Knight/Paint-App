@@ -24,7 +24,7 @@ const SelectionButton = () => {
 
     return (
         <PaintButton onClick={handleClick} stayActive active={isSelectionActive} ariaLabel={isSelectionActive ? 'Desativar seleção' : 'Ativar seleção'}>
-            <LuCrop className="w-4 h-4 sm:w-5 sm:h-5"/>
+            <LuCrop className="paint-icon"/>
         </PaintButton>
     );
 };

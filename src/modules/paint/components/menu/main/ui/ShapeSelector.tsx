@@ -48,21 +48,21 @@ const ShapeSelector = () => {
 
     return (
         <GlassCard initial={getInitialPos}>
-            <div className="px-3 pt-3 sm:px-4 sm:pt-4">
-                <div className="paint-floating-card-inner shadow-lg rounded-xl overflow-hidden p-3">
-                    <div className="scrollbar overflow-y-auto grid grid-cols-3 gap-2 py-2 sm:py-3 pr-2 sm:pr-3 pl-2 sm:pl-3 sm:gap-3 max-h-28 sm:max-h-41">
+            <div className="p-[var(--pm-pad)]">
+                <div className="paint-floating-card-inner shadow-lg rounded-xl overflow-hidden p-[var(--pm-btn-pad)]">
+                    <div className="scrollbar overflow-y-auto grid grid-cols-3 gap-[var(--pm-gap)] p-[var(--pm-btn-pad)] max-h-[clamp(7rem,20vh,10.25rem)]">
                         {[
-                            { key: 'circle', icon: <LuCircle className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'square', icon: <LuSquare className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'triangle', icon: <LuTriangle className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'diamond', icon: <LuDiamond className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'pentagon', icon: <LuPentagon className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'hexagon', icon: <LuHexagon className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'heptagon', icon: <BsHeptagon className="w-4 h-4 sm:w-5 sm:h-5"/>},
-                            { key: 'octagon', icon: <LuOctagon className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'star', icon: <LuStar className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'rect', icon: <LuRectangleHorizontal className="w-4 h-4 sm:w-5 sm:h-5" /> },
-                            { key: 'ellipse', icon: <TbOvalVertical className="w-4 h-4 sm:w-5 sm:h-5" />}
+                            { key: 'circle', icon: <LuCircle className="paint-icon" /> },
+                            { key: 'square', icon: <LuSquare className="paint-icon" /> },
+                            { key: 'triangle', icon: <LuTriangle className="paint-icon" /> },
+                            { key: 'diamond', icon: <LuDiamond className="paint-icon" /> },
+                            { key: 'pentagon', icon: <LuPentagon className="paint-icon" /> },
+                            { key: 'hexagon', icon: <LuHexagon className="paint-icon" /> },
+                            { key: 'heptagon', icon: <BsHeptagon className="paint-icon"/>},
+                            { key: 'octagon', icon: <LuOctagon className="paint-icon" /> },
+                            { key: 'star', icon: <LuStar className="paint-icon" /> },
+                            { key: 'rect', icon: <LuRectangleHorizontal className="paint-icon" /> },
+                            { key: 'ellipse', icon: <TbOvalVertical className="paint-icon" />}
                         ].map(({ key, icon }) => (
                             <PaintButton
                                 key={key}
@@ -76,14 +76,14 @@ const ShapeSelector = () => {
                         ))}
                     </div>
                 </div>
-                <div className="mt-3 sm:mt-4 flex items-center justify-center gap-2 sm:gap-3">
+                <div className="mt-[var(--pm-gap)] flex items-center justify-center gap-[var(--pm-gap)]">
                     <PaintButton
                         ariaLabel="Selecionar reta"
                         onClick={() => onSelect('line')}
                         active={selectedShape === 'line'}
                         stayActive
                     >
-                        <LuSlash className="w-4 h-4 sm:w-5 sm:h-5" /> 
+                        <LuSlash className="paint-icon" /> 
                     </PaintButton>
                     <PaintButton
                         ariaLabel="Selecionar seta diagonal"
@@ -91,7 +91,7 @@ const ShapeSelector = () => {
                         active={selectedShape === 'arrow'}
                         stayActive
                     >
-                        <LuArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <LuArrowUpRight className="paint-icon" />
                     </PaintButton>
                 </div>
             </div>

@@ -50,9 +50,9 @@ const Sidebar = ({
                         }`}
                     >
                         <div>
-                            <p className="theme-sidebar-kicker text-xs font-semibold uppercase tracking-[0.35em]">
+                            <a href='/' className="theme-sidebar-kicker hover:underline text-xs font-semibold uppercase tracking-[0.35em]">
                                 Graphic-Paint
-                            </p>
+                            </a>
                             <h1 className="theme-sidebar-title mt-2 text-2xl font-semibold">
                                 Graphics workspace
                             </h1>
@@ -94,9 +94,9 @@ const Sidebar = ({
                                 : 'hidden'
                         }`}
                     >
-                        <div className="theme-sidebar-brand-mark flex h-11 w-11 items-center justify-center rounded-2xl text-center text-lg font-bold uppercase tracking-[0.2em]">
+                        <a href='/' className="theme-sidebar-brand-mark flex justify-center items-center h-15 w-15 text-center rounded-2xl text-lg font-bold uppercase">
                             G
-                        </div>
+                        </a>
 
                         <RippleButton
                             controlId="sidebar-expand"

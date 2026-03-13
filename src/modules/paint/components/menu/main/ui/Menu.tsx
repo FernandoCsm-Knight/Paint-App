@@ -23,27 +23,36 @@ const Menu = () => {
             <div
                 data-paint-menu="true"
                 ref={draggable.ref}
-                className="paint-menu-shell absolute z-50 rounded-xl backdrop-blur-sm max-w-[95vw] max-h-[95vh] overflow-hidden"
+                className="paint-menu-shell absolute z-15 rounded-xl backdrop-blur-sm max-w-[95vw] max-h-[95vh] overflow-hidden"
                 style={draggable.style}
             >
-                <div className="relative flex items-center gap-2 sm:gap-3 p-2 sm:p-4 flex-wrap sm:flex-nowrap">
+                <div className="relative min-w-fit flex flex-col sm:flex-row sm:items-center gap-[var(--pm-gap)] p-[var(--pm-pad)]">
+                    {/* Row 1 (mobile) / first item (desktop): title card */}
                     <MenuTitle/>
-                    <ColorSelector/>
-                    <EraserButton/>
-                    <ShapesButton/>
-                    <SelectionButton/>
-                    <PanButton/>
-                    <FillButton/>
-                    <WidthSelector/>
-                    <div className="flex flex-col items-center gap-1">
-                        <button
-                            onPointerDown={draggable.onPointerDown}
-                            className="block cursor-grab active:cursor-grabbing touch-none select-none"
-                            aria-label="Drag to move"
-                        >
-                            <LuGripHorizontal className="paint-drag-handle sm:h-5 sm:w-5 h-4 w-4"/>
-                        </button>
-                        <SettingsButton/>
+
+                    {/* Row 2 (mobile) / rest of items (desktop): controls */}
+                    <div className="flex items-center gap-[var(--pm-gap)] min-w-fit">
+                        <div className="flex flex-col grow items-center gap-[var(--pm-gap)] min-w-fit">
+                            <div className="flex grow items-center gap-[var(--pm-gap)] min-w-fit">
+                                <ColorSelector/>
+                                <EraserButton/>
+                                <ShapesButton/>
+                                <SelectionButton/>
+                                <PanButton/>
+                                <FillButton/>
+                            </div>
+                            <WidthSelector/>
+                        </div>
+                        <div className="flex flex-col items-center gap-[var(--pm-gap)] ml-auto">
+                            <button
+                                onPointerDown={draggable.onPointerDown}
+                                className="block cursor-grab active:cursor-grabbing touch-none select-none"
+                                aria-label="Drag to move"
+                            >
+                                <LuGripHorizontal className="paint-drag-handle paint-icon"/>
+                            </button>
+                            <SettingsButton/>
+                        </div>
                     </div>
                 </div>
             </div>

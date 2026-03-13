@@ -25,7 +25,7 @@ const PaintButton = ({ ref, children, onClick, stayActive = false, className = "
             ref={ref}
             onClick={handleClick}
             aria-label={ariaLabel}
-            className={`paint-button cursor-pointer p-1.5 sm:p-2.5 rounded-md flex-shrink-0 border-0 outline-none no-underline ${
+            className={`paint-button cursor-pointer p-[var(--pm-btn-pad)] rounded-md flex-shrink-0 border-0 outline-none no-underline ${
                 isActive && stayActive 
                     ? 'paint-button-active'
                     : ''
