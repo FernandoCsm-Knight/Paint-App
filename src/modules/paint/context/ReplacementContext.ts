@@ -6,7 +6,6 @@ export type GridSettings = {
 
 export type ReplacementContextType = {
     replacementCanvasRef: RefObject<HTMLCanvasElement | null>;
-    viewportReplacementCanvasRef: RefObject<HTMLCanvasElement | null>;
     replacementContextRef: RefObject<CanvasRenderingContext2D | null>;
 
     settings: GridSettings;

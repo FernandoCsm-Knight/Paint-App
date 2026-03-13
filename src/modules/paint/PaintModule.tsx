@@ -1,7 +1,8 @@
+import PaintProvider from './context/providers/PaintProvider';
+import ReplacementProvider from './context/providers/ReplacementProvider';
+import SettingsProvider from './context/providers/SettingsProvider';
 import PaintWorkspace from './PaintWorkspace';
-import PaintProvider from './providers/PaintProvider';
-import ReplacementProvider from './providers/ReplacementProvider';
-import SettingsProvider from './providers/SettingsProvider';
+
 
 const PaintModule = () => {
     return (

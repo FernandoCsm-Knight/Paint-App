@@ -1,6 +1,6 @@
 import type { Point } from "./Graphics";
 import type { LineAlgorithm } from "../context/SettingsContext";
-import type { Shape, ShapeOptions } from "./ShapeTypes";
+import type { Shape, ShapeOptions } from "../shapes/ShapeTypes";
 import Line from "../shapes/Line";
 import Circle from "../shapes/Circle";
 import Octagon from "../shapes/Octagon";

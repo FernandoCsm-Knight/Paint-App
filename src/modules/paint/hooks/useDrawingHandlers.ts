@@ -1,0 +1,221 @@
+import { useCallback, useContext, useRef } from "react";
+import type { PointerEvent } from "react";
+import { PaintContext } from "../context/PaintContext";
+import { SettingsContext } from "../context/SettingsContext";
+import { Shape } from "../shapes/ShapeTypes";
+import generator from "../types/ShapeGenerator";
+import FreeForm from "../shapes/FreeForm";
+import FillShape from "../shapes/FillShape";
+import SnapshotShape from "../shapes/SnapshotShape";
+import { map, type Point } from "../types/Graphics";
+import useSelection from "./useSelection";
+import usePanZoom from "./usePanZoom";
+import type { SceneItem } from "./useScene";
+
+type DrawingHandlersInput = {
+    renderViewport: () => void;
+    getViewportSize: () => { width: number; height: number };
+    clampViewOffset: (next: Point, viewportWidth?: number, viewportHeight?: number, canvasWidth?: number, canvasHeight?: number, zoomLevel?: number) => Point;
+    getMinAllowedZoom: (viewportWidth?: number, viewportHeight?: number, canvasWidth?: number, canvasHeight?: number) => number;
+    pushShape: (shape: SceneItem) => void;
+    redrawFromScene: (ctx: CanvasRenderingContext2D) => void;
+    takeSnapshotShape: (ctx: CanvasRenderingContext2D) => SnapshotShape;
+};
+
+const useDrawingHandlers = ({
+    renderViewport,
+    getViewportSize,
+    clampViewOffset,
+    getMinAllowedZoom,
+    pushShape,
+    redrawFromScene,
+    takeSnapshotShape,
+}: DrawingHandlersInput) => {
+    const {
+        canvasRef,
+        contextRef,
+        thickness,
+        currentColor,
+        isEraserActive,
+        isFillActive,
+        isSelectionActive,
+        pixelated,
+        selectedShape,
+        viewOffset,
+        zoom,
+    } = useContext(PaintContext)!;
+
+    const { pixelSize, lineAlgorithm } = useContext(SettingsContext)!;
+
+    const { startSelection, updateSelection, stopSelection } = useSelection();
+    const { onPointerDown: panDown, onPointerMove: panMove, onPointerUp: panUp, handleWheel } = usePanZoom({
+        getViewportSize,
+        clampViewOffset,
+        getMinAllowedZoom,
+    });
+
+    const isDrawing = useRef(false);
+    const start = useRef<Point>({ x: 0, y: 0 });
+    const currentShape = useRef<Shape | null>(null);
+    const rafId = useRef<number | null>(null);
+    const pendingPoint = useRef<Point | null>(null);
+
+    const getCanvasPoint = useCallback((e: PointerEvent<HTMLCanvasElement>): Point | null => {
+        const canvas = canvasRef.current;
+        if (!canvas) return null;
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left - viewOffset.x) / zoom,
+            y: (e.clientY - rect.top - viewOffset.y) / zoom,
+        };
+    }, [canvasRef, viewOffset.x, viewOffset.y, zoom]);
+
+    const handlePointerDown = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
+        if (panDown(e)) return;
+        if (e.button !== 0) return;
+
+        const canvas = canvasRef.current;
+        const ctx = contextRef.current;
+        if (!canvas || !ctx) return;
+
+        canvas.setPointerCapture(e.pointerId);
+        const point = getCanvasPoint(e);
+        if (!point) return;
+
+        const { x, y } = point;
+        isDrawing.current = true;
+        start.current = pixelated ? map({ x, y }, pixelSize) : { x, y };
+
+        if (isSelectionActive) {
+            startSelection({ x, y });
+        } else if (isFillActive) {
+            const fillShape = new FillShape({
+                point: start.current,
+                strokeStyle: currentColor.current,
+                isEraser: isEraserActive,
+                pixelated,
+                pixelSize,
+            });
+            fillShape.draw(ctx);
+            currentShape.current = fillShape;
+            renderViewport();
+        } else if (selectedShape === "freeform") {
+            const form = new FreeForm([start.current], {
+                strokeStyle: currentColor.current,
+                lineWidth: thickness.current,
+                isEraser: isEraserActive,
+                filled: isFillActive,
+                pixelated,
+                pixelSize,
+                lineAlgorithm,
+            });
+            form.draw(ctx);
+            currentShape.current = form;
+            renderViewport();
+        }
+    }, [
+        panDown, canvasRef, contextRef, getCanvasPoint, pixelated, pixelSize,
+        isSelectionActive, startSelection, isFillActive, currentColor, isEraserActive,
+        selectedShape, thickness, lineAlgorithm, renderViewport,
+    ]);
+
+    const handlePointerMove = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
+        if (panMove(e)) return;
+        if (!isDrawing.current) return;
+
+        const ctx = contextRef.current;
+        if (!ctx) return;
+
+        const currentPoint = getCanvasPoint(e);
+        if (!currentPoint) return;
+
+        const { x, y } = currentPoint;
+        const point = pixelated ? map({ x, y }, pixelSize) : { x, y };
+
+        if (isSelectionActive) {
+            updateSelection({ x, y });
+            return;
+        }
+
+        if (selectedShape === "freeform") {
+            if (currentShape.current instanceof FreeForm) {
+                currentShape.current.lineTo(point, ctx);
+                renderViewport();
+            }
+            return;
+        }
+
+        pendingPoint.current = point;
+        if (rafId.current === null) {
+            rafId.current = requestAnimationFrame(() => {
+                rafId.current = null;
+                if (!pendingPoint.current) return;
+
+                redrawFromScene(ctx);
+
+                const shape = generator({
+                    start: start.current,
+                    end: pendingPoint.current,
+                    color: currentColor.current,
+                    thickness: thickness.current,
+                    kind: selectedShape,
+                    pixelated,
+                    pixelSize,
+                    lineAlgorithm,
+                });
+
+                currentShape.current = shape;
+                shape.draw(ctx);
+                renderViewport();
+            });
+        }
+    }, [
+        panMove, contextRef, getCanvasPoint, pixelated, pixelSize,
+        isSelectionActive, updateSelection, selectedShape, redrawFromScene,
+        currentColor, thickness, lineAlgorithm, renderViewport,
+    ]);
+
+    const handlePointerUp = useCallback((e?: PointerEvent<HTMLCanvasElement>) => {
+        if (panUp(e)) return;
+
+        if (isDrawing.current) {
+            if (rafId.current !== null) {
+                cancelAnimationFrame(rafId.current);
+                rafId.current = null;
+            }
+
+            const ctx = contextRef.current;
+
+            if (isSelectionActive) {
+                stopSelection();
+            } else if (currentShape.current && ctx) {
+                if (currentShape.current instanceof FreeForm || currentShape.current instanceof FillShape) {
+                    pushShape(takeSnapshotShape(ctx));
+                } else {
+                    pushShape(currentShape.current);
+                }
+                renderViewport();
+            }
+
+            isDrawing.current = false;
+            currentShape.current = null;
+            if (ctx) {
+                ctx.beginPath();
+                ctx.globalCompositeOperation = "source-over";
+            }
+        }
+
+        if (e?.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+    }, [panUp, contextRef, isSelectionActive, renderViewport, pushShape, takeSnapshotShape, stopSelection]);
+
+    return {
+        handlePointerDown,
+        handlePointerMove,
+        handlePointerUp,
+        handleWheel,
+    };
+};
+
+export default useDrawingHandlers;

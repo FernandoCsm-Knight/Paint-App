@@ -1,0 +1,77 @@
+import { useMemo, useRef, useState } from "react";
+import { PaintContext, type PaintContextType } from "../PaintContext";
+import type { Geometric } from "../../types/Graphics";
+
+const DEFAULT_CANVAS_SIZE = {
+    width: 2400,
+    height: 1600,
+};
+
+type PaintProviderProps = {
+    children: React.ReactNode;
+};
+
+const PaintProvider = ({ children }: PaintProviderProps) => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+    const currentColor = useRef<string>('#000000');
+    const thickness = useRef<number>(5);
+    const renderViewportRef = useRef<() => void>(() => {});
+
+    const [pixelated, setPixelated] = useState<boolean>(false);
+    const [isEraserActive, setEraser] = useState<boolean>(false);
+    const [isFillActive, setFill] = useState<boolean>(false);
+    const [isSelectionActive, setSelectionActive] = useState<boolean>(false);
+    const [selectedShape, setSelectedShape] = useState<Geometric>('freeform');
+    const [isPanModeActive, setPanModeActive] = useState<boolean>(false);
+    const [isCanvasPanning, setCanvasPanning] = useState<boolean>(false);
+    const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState<number>(1);
+    const [canvasSize, setCanvasSize] = useState(DEFAULT_CANVAS_SIZE);
+
+    const paintContext = useMemo((): PaintContextType => ({
+        canvasRef,
+        containerRef,
+        contextRef,
+        currentColor,
+        thickness,
+
+        pixelated,
+        setPixelated,
+        isEraserActive,
+        setEraser,
+        isFillActive,
+        setFill,
+        isSelectionActive,
+        setSelectionActive,
+        selectedShape,
+        setSelectedShape,
+        isPanModeActive,
+        setPanModeActive,
+        isCanvasPanning,
+        setCanvasPanning,
+        viewOffset,
+        setViewOffset,
+        zoom,
+        setZoom,
+        canvasSize,
+        setCanvasSize,
+        renderViewport: () => renderViewportRef.current(),
+        setRenderViewport: (callback: () => void) => {
+            renderViewportRef.current = callback;
+        },
+    }), [
+        pixelated, isEraserActive, isFillActive, isSelectionActive,
+        selectedShape, isPanModeActive, isCanvasPanning,
+        viewOffset, zoom, canvasSize
+    ]);
+
+    return (
+        <PaintContext.Provider value={paintContext}>
+            { children }
+        </PaintContext.Provider>
+    );
+};
+
+export default PaintProvider;

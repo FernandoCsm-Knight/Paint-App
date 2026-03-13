@@ -1,5 +1,5 @@
 import { type Point } from "../types/Graphics";
-import { Shape, type ShapeOptions } from "../types/ShapeTypes";
+import { Shape, type ShapeOptions } from "./ShapeTypes";
 
 export default class Ellipse extends Shape {
     kind = 'ellipse' as const;
@@ -77,12 +77,6 @@ export default class Ellipse extends Shape {
         ctx.strokeStyle = this.strokeStyle;
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
-    }
-
-    contains(p: Point): boolean {
-        const dx = p.x - this.center.x;
-        const dy = p.y - this.center.y;
-        return (dx * dx) / (this.radiusX * this.radiusX) + (dy * dy) / (this.radiusY * this.radiusY) < 1;
     }
 
     moveBy(dx: number, dy: number): void {

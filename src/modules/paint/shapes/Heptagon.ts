@@ -1,4 +1,4 @@
-import { Shape, type ShapeOptions } from "../types/ShapeTypes";
+import { Shape, type ShapeOptions } from "./ShapeTypes";
 import { rasterizePixelatedPolygon, rasterizePolygon } from "../algorithms/PolygonRasterization";
 import { createPolygon, type Point } from "../types/Graphics";
 
@@ -19,10 +19,6 @@ export default class Heptagon extends Shape {
 
     standardDraw(ctx: CanvasRenderingContext2D): void {
         rasterizePolygon(this.points, this.lineWidth, this.strokeStyle, ctx);
-    }
-
-    contains(p: Point): boolean {
-        return p.x >= this.points[0].x && p.x <= this.points[2].x && p.y >= this.points[0].y && p.y <= this.points[2].y;
     }
 
     moveBy(dx: number, dy: number): void {

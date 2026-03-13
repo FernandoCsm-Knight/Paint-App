@@ -1,5 +1,5 @@
 import type { Point } from "../types/Graphics";
-import { Shape, type ShapeOptions } from "../types/ShapeTypes";
+import { Shape, type ShapeOptions } from "./ShapeTypes";
 
 export default class Circle extends Shape {
     kind = 'circle' as const;
@@ -58,12 +58,6 @@ export default class Circle extends Shape {
         ctx.strokeStyle = this.strokeStyle;
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
-    }
-
-    contains(p: Point): boolean {
-        const dx = p.x - this.center.x;
-        const dy = p.y - this.center.y;
-        return dx * dx + dy * dy < this.radius * this.radius;
     }
 
     moveBy(dx: number, dy: number): void {

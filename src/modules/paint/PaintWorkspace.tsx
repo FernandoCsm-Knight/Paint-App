@@ -1,7 +1,7 @@
 import { useContext, useEffect } from 'react';
-import Menu from './components/Menu'
+import Menu from './components/menu/main/ui/Menu'
 import useCanvas from './hooks/useCanvas';
-import MenuProvider from './providers/MenuProvider';
+import MenuProvider from './context/providers/MenuProvider';
 import { PaintContext } from './context/PaintContext';
 import { ReplacementContext } from './context/ReplacementContext';
 import { SettingsContext } from './context/SettingsContext';
@@ -10,8 +10,8 @@ import ModeManager from './components/ModeManager';
 
 function PaintWorkspace() {
     const paintContext = useContext(PaintContext)!;
-    const { viewportCanvasRef, containerRef, isSelectionActive, isPanModeActive, isCanvasPanning } = paintContext;
-    const { viewportReplacementCanvasRef } = useContext(ReplacementContext)!;
+    const { canvasRef, containerRef, isPanModeActive, isCanvasPanning } = paintContext;
+    const { replacementCanvasRef } = useContext(ReplacementContext)!;
     const { gridDisplayMode, pageSizeEraser } = useContext(SettingsContext)!;
 
     const {
@@ -76,11 +76,11 @@ function PaintWorkspace() {
             >
                 <div className="absolute inset-0 overflow-hidden">
                     <canvas
-                        ref={viewportReplacementCanvasRef}
-                        className={`absolute border-0 pointer-events-none inset-0 h-full w-full ${(gridDisplayMode === 'front' || isSelectionActive) ? 'z-20' : 'z-0'}`}
+                        ref={replacementCanvasRef}
+                        className={`absolute border-0 pointer-events-none inset-0 h-full w-full ${(gridDisplayMode === 'front') ? 'z-20' : 'z-0'}`}
                     ></canvas>
                     <canvas
-                        ref={viewportCanvasRef}
+                        ref={canvasRef}
                         className='relative z-10 block h-full w-full touch-none border-0 select-none'
                         onMouseDown={(e) => {
                             if (e.button === 1) e.preventDefault();

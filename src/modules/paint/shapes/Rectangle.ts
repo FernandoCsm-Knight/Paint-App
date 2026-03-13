@@ -1,5 +1,5 @@
 import type { Point } from "../types/Graphics";
-import { Shape, type ShapeOptions } from "../types/ShapeTypes";
+import { Shape, type ShapeOptions } from "./ShapeTypes";
 
 export default class Rectangle extends Shape {
     kind = 'rect' as const;
@@ -44,10 +44,6 @@ export default class Rectangle extends Shape {
         ctx.strokeStyle = this.strokeStyle;
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
-    }
-
-    contains(p: Point): boolean {
-        return p.x >= this.topLeft.x && p.x <= this.bottomRight.x && p.y >= this.topLeft.y && p.y <= this.bottomRight.y;
     }
 
     moveBy(dx: number, dy: number): void {

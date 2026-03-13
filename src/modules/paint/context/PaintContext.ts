@@ -3,7 +3,6 @@ import type { Geometric, Point } from "../types/Graphics";
 
 export type PaintContextType = {
     canvasRef: RefObject<HTMLCanvasElement | null>;
-    viewportCanvasRef: RefObject<HTMLCanvasElement | null>;
     containerRef: RefObject<HTMLDivElement | null>;
     contextRef: RefObject<CanvasRenderingContext2D | null>;
     currentColor: RefObject<string>;

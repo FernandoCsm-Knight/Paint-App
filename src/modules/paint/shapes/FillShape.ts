@@ -1,4 +1,4 @@
-import { Shape, type ShapeOptions } from "../types/ShapeTypes";
+import { Shape, type ShapeOptions } from "./ShapeTypes";
 import { type Geometric, type Point } from "../types/Graphics";
 import FloodFill from "../algorithms/FloodFill";
 import ScanLineFill from "../algorithms/ScanLineFill";
@@ -21,10 +21,6 @@ export default class FillShape extends Shape {
         this.point = options.point;
         this.isEraser = options.isEraser ?? false;
         this.algorithm = options.algorithm ?? "scanline";
-    }
-
-    contains(): boolean {
-        return false;
     }
 
     moveBy(dx: number, dy: number): void {

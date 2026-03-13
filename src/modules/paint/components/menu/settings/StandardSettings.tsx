@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { SettingsContext } from "../../../context/SettingsContext";
 import GridSettings from "./GridSettings";
-import Settings from "./Settings";
+import Settings from "./ui/Settings";
 
 const StandardSettings = () => {
     const { pageSizeEraser, setPageSizeEraser } = useContext(SettingsContext)!;

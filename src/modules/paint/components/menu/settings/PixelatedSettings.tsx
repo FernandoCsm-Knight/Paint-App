@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { SettingsContext, type LineAlgorithm } from "../../../context/SettingsContext";
 import GridSettings from "./GridSettings";
-import Settings from "./Settings";
+import Settings from "./ui/Settings";
 
 const PixelatedSettings = () => {
     const {

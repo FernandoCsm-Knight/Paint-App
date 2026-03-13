@@ -5,7 +5,7 @@ import { PaintContext } from "../context/PaintContext";
 import type { Point } from "../types/Graphics";
 
 const PageSizeEraser = () => {
-    const { canvasRef, viewportCanvasRef, contextRef, renderViewport, saveSnapshot, viewOffset, zoom } = useContext(PaintContext)!;
+    const { canvasRef, contextRef, renderViewport, saveSnapshot, viewOffset, zoom } = useContext(PaintContext)!;
     const [isActive, setIsActive] = useState(false);
     const [previewHeight, setPreviewHeight] = useState(0);
 
@@ -15,10 +15,11 @@ const PageSizeEraser = () => {
     });
 
     const eraseFromBottom = (pointPage: Point) => {
-        const canvas = canvasRef.current;
-        const viewportCanvas = viewportCanvasRef.current;
+        const viewportCanvas = canvasRef.current;   // on-screen canvas (for position)
         const ctx = contextRef.current;
-        if(!canvas || !viewportCanvas || !ctx) return;
+        if(!viewportCanvas || !ctx) return;
+
+        const docCanvas = ctx.canvas;               // off-screen document canvas (for dimensions)
 
         const scrollY = window.scrollY || window.pageYOffset;
         const handleYViewport = pointPage.y - scrollY;
@@ -37,11 +38,11 @@ const PageSizeEraser = () => {
         const localTop = bandTop - rect.top;
         const localBottom = bandBottom - rect.top;
         const worldTop = Math.max(0, (-viewOffset.y + localTop) / zoom);
-        const worldBottom = Math.min(canvas.height, (-viewOffset.y + localBottom) / zoom);
+        const worldBottom = Math.min(docCanvas.height, (-viewOffset.y + localBottom) / zoom);
         const clearHeight = Math.max(0, worldBottom - worldTop);
 
         if (clearHeight > 0) {
-            ctx.clearRect(0, worldTop, canvas.width, clearHeight);
+            ctx.clearRect(0, worldTop, docCanvas.width, clearHeight);
             renderViewport();
         }
     };
