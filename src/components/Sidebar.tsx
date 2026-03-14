@@ -1,5 +1,6 @@
 import { LuChevronLeft, LuChevronRight, LuPanelsTopLeft } from 'react-icons/lu';
 import RippleButton from './RippleButton';
+import ThemePicker from './ThemePicker';
 import type { GraphicsModule } from '../modules/modules';
 
 type SidebarProps = {
@@ -35,7 +36,7 @@ const Sidebar = ({
             />
 
             <aside
-                className={`app-sidebar-shell theme-sidebar-shell fixed inset-y-0 left-0 z-40 flex h-screen w-[min(86vw,340px)] flex-col overflow-x-hidden border-r backdrop-blur-xl lg:static lg:z-auto lg:translate-x-0 ${
+                className={`app-sidebar-shell theme-sidebar-shell fixed inset-y-0 left-0 z-40 flex h-screen w-[min(86vw,340px)] flex-col overflow-x-hidden border-r backdrop-blur-xl lg:relative lg:z-auto lg:translate-x-0 ${
                     isMobileOpen ? 'translate-x-0' : '-translate-x-full'
                 } ${isCollapsed ? 'lg:w-24' : 'lg:w-80'}`}
             >
@@ -109,7 +110,7 @@ const Sidebar = ({
                     </div>
                 </div>
 
-                <div className="scrollbar flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 lg:px-5">
+                <div className="scrollbar flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 pb-32 lg:px-5 lg:pb-32">
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <div
@@ -184,6 +185,8 @@ const Sidebar = ({
                         </div>
                     </div>
                 </div>
+
+                <ThemePicker isCollapsed={isCollapsed} />
             </aside>
         </>
     );

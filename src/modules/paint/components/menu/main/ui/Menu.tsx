@@ -1,5 +1,4 @@
-import { LuGripHorizontal } from "react-icons/lu";
-import { useDraggable } from "../../../../hooks/useDraggable";
+import { LuGripHorizontal } from "react-icons/lu"; 
 import ColorSelector from "./ColorSelector";
 import WidthSelector from "./WidthSelector";
 import MenuTitle from "./MenuTitle";
@@ -13,6 +12,7 @@ import ShapesButton from "../buttons/ShapesButton";
 import SelectionButton from "../buttons/SelectionButton";
 import PanButton from "../buttons/PanButton";
 import FillButton from "../buttons/FillButton";
+import { useDraggable } from "../../../../../../hooks/useDraggable";
 
 const Menu = () => {
     const { shapeMenu, settingsMenu } = useContext(MenuContext)!;
@@ -23,7 +23,7 @@ const Menu = () => {
             <div
                 data-paint-menu="true"
                 ref={draggable.ref}
-                className="paint-menu-shell absolute z-15 rounded-xl backdrop-blur-sm max-w-[95vw] max-h-[95vh] overflow-hidden"
+                className="ui-menu-shell absolute z-15 rounded-xl backdrop-blur-sm max-w-[95vw] max-h-[95vh] overflow-hidden"
                 style={draggable.style}
             >
                 <div className="relative min-w-fit flex flex-col sm:flex-row sm:items-center gap-[var(--pm-gap)] p-[var(--pm-pad)]">
@@ -49,7 +49,7 @@ const Menu = () => {
                                 className="block cursor-grab active:cursor-grabbing touch-none select-none"
                                 aria-label="Drag to move"
                             >
-                                <LuGripHorizontal className="paint-drag-handle paint-icon"/>
+                                <LuGripHorizontal className="ui-drag-handle ui-icon"/>
                             </button>
                             <SettingsButton/>
                         </div>

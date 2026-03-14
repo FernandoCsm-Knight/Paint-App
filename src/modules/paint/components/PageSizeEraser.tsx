@@ -1,8 +1,8 @@
 import { LuGripHorizontal } from "react-icons/lu";
-import { useDraggable } from "../hooks/useDraggable";
 import { useContext, useState } from "react";
 import { PaintContext } from "../context/PaintContext";
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
+import { useDraggable } from "../../../hooks/useDraggable";
 
 const HANDLE_HEIGHT = 40;
 

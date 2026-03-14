@@ -1,6 +1,6 @@
 import { useContext, useCallback } from "react";
 import { MenuContext } from "../../../../context/MenuContext";
-import PaintButton from "../../../PaintButton";
+import WorkspaceToolButton from "../../../../../../components/WorkspaceToolButton";
 import {
     LuCircle,
     LuSquare,
@@ -13,12 +13,14 @@ import {
     LuRectangleHorizontal,
     LuArrowUpRight,
     LuSlash,
+    LuPenTool,
 } from "react-icons/lu";
 import { PaintContext } from "../../../../context/PaintContext";
-import type { Geometric, Point } from "../../../../types/Graphics";
+import type { Geometric } from "../../../../types/Graphics";
 import { BsHeptagon } from "react-icons/bs";
 import { TbOvalVertical } from "react-icons/tb";
-import GlassCard from "./GlassCard";
+import GlassCard from "../../../../../../components/GlassCard";
+import type { Point } from "../../../../../../functions/geometry";
 
 const ShapeSelector = () => {
     const { shapeButtonRef } = useContext(MenuContext)!;
@@ -49,22 +51,22 @@ const ShapeSelector = () => {
     return (
         <GlassCard initial={getInitialPos}>
             <div className="p-[var(--pm-pad)]">
-                <div className="paint-floating-card-inner shadow-lg rounded-xl overflow-hidden p-[var(--pm-btn-pad)]">
+                <div className="ui-floating-card-inner shadow-lg rounded-xl overflow-hidden p-[var(--pm-btn-pad)]">
                     <div className="scrollbar overflow-y-auto grid grid-cols-3 gap-[var(--pm-gap)] p-[var(--pm-btn-pad)] max-h-[clamp(7rem,20vh,10.25rem)]">
                         {[
-                            { key: 'circle', icon: <LuCircle className="paint-icon" /> },
-                            { key: 'square', icon: <LuSquare className="paint-icon" /> },
-                            { key: 'triangle', icon: <LuTriangle className="paint-icon" /> },
-                            { key: 'diamond', icon: <LuDiamond className="paint-icon" /> },
-                            { key: 'pentagon', icon: <LuPentagon className="paint-icon" /> },
-                            { key: 'hexagon', icon: <LuHexagon className="paint-icon" /> },
-                            { key: 'heptagon', icon: <BsHeptagon className="paint-icon"/>},
-                            { key: 'octagon', icon: <LuOctagon className="paint-icon" /> },
-                            { key: 'star', icon: <LuStar className="paint-icon" /> },
-                            { key: 'rect', icon: <LuRectangleHorizontal className="paint-icon" /> },
-                            { key: 'ellipse', icon: <TbOvalVertical className="paint-icon" />}
+                            { key: 'circle', icon: <LuCircle className="ui-icon" /> },
+                            { key: 'square', icon: <LuSquare className="ui-icon" /> },
+                            { key: 'triangle', icon: <LuTriangle className="ui-icon" /> },
+                            { key: 'diamond', icon: <LuDiamond className="ui-icon" /> },
+                            { key: 'pentagon', icon: <LuPentagon className="ui-icon" /> },
+                            { key: 'hexagon', icon: <LuHexagon className="ui-icon" /> },
+                            { key: 'heptagon', icon: <BsHeptagon className="ui-icon"/>},
+                            { key: 'octagon', icon: <LuOctagon className="ui-icon" /> },
+                            { key: 'star', icon: <LuStar className="ui-icon" /> },
+                            { key: 'rect', icon: <LuRectangleHorizontal className="ui-icon" /> },
+                            { key: 'ellipse', icon: <TbOvalVertical className="ui-icon" />}
                         ].map(({ key, icon }) => (
-                            <PaintButton
+                            <WorkspaceToolButton
                                 key={key}
                                 ariaLabel={`Selecionar forma ${key}`}
                                 onClick={() => onSelect(key as Geometric)}
@@ -72,27 +74,35 @@ const ShapeSelector = () => {
                                 stayActive
                             >
                                 {icon}
-                            </PaintButton>
+                            </WorkspaceToolButton>
                         ))}
                     </div>
                 </div>
                 <div className="mt-[var(--pm-gap)] flex items-center justify-center gap-[var(--pm-gap)]">
-                    <PaintButton
+                    <WorkspaceToolButton
                         ariaLabel="Selecionar reta"
                         onClick={() => onSelect('line')}
                         active={selectedShape === 'line'}
                         stayActive
                     >
-                        <LuSlash className="paint-icon" /> 
-                    </PaintButton>
-                    <PaintButton
+                        <LuSlash className="ui-icon" />
+                    </WorkspaceToolButton>
+                    <WorkspaceToolButton
                         ariaLabel="Selecionar seta diagonal"
                         onClick={() => onSelect('arrow')}
                         active={selectedShape === 'arrow'}
                         stayActive
                     >
-                        <LuArrowUpRight className="paint-icon" />
-                    </PaintButton>
+                        <LuArrowUpRight className="ui-icon" />
+                    </WorkspaceToolButton>
+                    <WorkspaceToolButton
+                        ariaLabel="Polígono livre (clique para adicionar vértices)"
+                        onClick={() => onSelect('polygon')}
+                        active={selectedShape === 'polygon'}
+                        stayActive
+                    >
+                        <LuPenTool className="ui-icon" />
+                    </WorkspaceToolButton>
                 </div>
             </div>
         </GlassCard>

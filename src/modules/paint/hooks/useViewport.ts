@@ -4,7 +4,7 @@ import { PaintContext } from "../context/PaintContext";
 import { ReplacementContext } from "../context/ReplacementContext";
 import { SettingsContext } from "../context/SettingsContext";
 import { drawGrid, getGridCellSize } from "../utils/Grid";
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 export const MIN_ZOOM = 0.35;
 export const MAX_ZOOM = 3;
@@ -112,12 +112,14 @@ const useViewport = (documentCanvasRef: RefObject<HTMLCanvasElement | null>) => 
         viewportCtx.clearRect(0, 0, viewportCtx.canvas.width, viewportCtx.canvas.height);
         viewportCtx.imageSmoothingEnabled = false;
 
+        const offsetX = viewOffset.x;
+        const offsetY = viewOffset.y;
         const sourceWidth = Math.min(documentCanvas.width, viewportWidth / zoom);
         const sourceHeight = Math.min(documentCanvas.height, viewportHeight / zoom);
         const maxSourceX = Math.max(0, documentCanvas.width - sourceWidth);
         const maxSourceY = Math.max(0, documentCanvas.height - sourceHeight);
-        const sourceX = Math.min(maxSourceX, Math.max(0, -viewOffset.x / zoom));
-        const sourceY = Math.min(maxSourceY, Math.max(0, -viewOffset.y / zoom));
+        const sourceX = Math.min(maxSourceX, Math.max(0, -offsetX / zoom));
+        const sourceY = Math.min(maxSourceY, Math.max(0, -offsetY / zoom));
 
         viewportCtx.save();
         viewportCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -131,7 +133,7 @@ const useViewport = (documentCanvasRef: RefObject<HTMLCanvasElement | null>) => 
         if (gridDisplayMode !== "none") {
             drawGrid(
                 overlayViewportCtx, 
-                viewOffset, 
+                { x: offsetX, y: offsetY }, 
                 getGridCellSize(pixelated, pixelSize, zoom), 
                 viewportWidth, 
                 viewportHeight,

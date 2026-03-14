@@ -1,5 +1,6 @@
 import { Shape, type ShapeOptions } from "./ShapeTypes";
-import { type Geometric, type Point } from "../types/Graphics";
+import { type Geometric } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 import FloodFill from "../algorithms/FloodFill";
 import ScanLineFill from "../algorithms/ScanLineFill";
 import type { FillAlgorithm } from "../context/SettingsContext";

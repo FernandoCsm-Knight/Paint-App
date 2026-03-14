@@ -1,4 +1,5 @@
-import type { Geometric, Point } from "../types/Graphics";
+import type { Geometric } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 import type { LineAlgorithm } from "../context/SettingsContext";
 
 export type ShapeOptions = {

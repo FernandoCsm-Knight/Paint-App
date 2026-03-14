@@ -1,6 +1,6 @@
 import bresenham from "../algorithms/BresenhamLine";
 import dda from "../algorithms/DDA";
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 import { Shape, type ShapeOptions } from "./ShapeTypes";
 
 export default class FreeForm extends Shape {

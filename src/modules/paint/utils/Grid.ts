@@ -1,4 +1,4 @@
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 export const STANDARD_GRID_SIZE = 32;
 export const GRID_LINE_COLOR = "#d5d9e2";

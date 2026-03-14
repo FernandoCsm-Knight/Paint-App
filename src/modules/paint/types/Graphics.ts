@@ -1,9 +1,11 @@
-export type Point = { x: number; y: number };
-export type RGBA = { r: number; g: number; b: number; a: number };
-export type Geometric = 'circle' | 'square' | 'triangle' | 'diamond' | 
-                        'pentagon' | 'hexagon' | 'heptagon' | 'octagon' | 'star' | 
+import type { Point, RGBA } from "../../../functions/geometry";
+
+export type { Point, RGBA } from "../../../functions/geometry";
+
+export type Geometric = 'circle' | 'square' | 'triangle' | 'diamond' |
+                        'pentagon' | 'hexagon' | 'heptagon' | 'octagon' | 'star' |
                         'rect' | 'line' | 'arrow' | 'board' | 'image' |
-                        'freeform' | 'ellipse' | 'floodfill';
+                        'freeform' | 'ellipse' | 'floodfill' | 'polygon';
 
 export const lineInfo = (start: Point, end: Point): { angle: number; size: number } => {
     const angle = Math.atan2(end.y - start.y, end.x - start.x);

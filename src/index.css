@@ -117,6 +117,14 @@ body {
   backdrop-filter: blur(20px);
 }
 
+.workspace-overlay-badge {
+  border: 1px solid var(--ui-menu-border);
+  background: color-mix(in srgb, var(--ui-menu-surface) 82%, transparent);
+  color: var(--app-shell-text);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.18);
+  backdrop-filter: blur(16px);
+}
+
 .module-card-button {
   position: relative;
   overflow: hidden;
@@ -208,10 +216,10 @@ body {
 
 .scrollbar::-webkit-scrollbar {
   width: 7px;
-  background-color: transparent; 
+  background-color: transparent;
 }
 .scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.72); 
+  background: rgba(255, 255, 255, 0.72);
   border-radius: 5px;
 }
 .scrollbar::-webkit-scrollbar-thumb {
@@ -225,10 +233,12 @@ body {
   background-color: #333333;
 }
 
-.paint-menu-shell,
-.paint-floating-card {
-  background: var(--paint-menu-surface);
-  border: 1px solid var(--paint-menu-border);
+.workspace-menu-shell,
+.workspace-floating-card,
+.ui-menu-shell,
+.ui-floating-card {
+  background: var(--ui-menu-surface);
+  border: 1px solid var(--ui-menu-border);
   box-shadow: 0 18px 40px rgba(2, 6, 23, 0.28);
 
   /* Fluid scale — all menu children consume these vars */
@@ -243,58 +253,60 @@ body {
 }
 
 /* Single fluid icon class — replaces all w-4 h-4 sm:w-5 sm:h-5 patterns */
-.paint-icon {
+.workspace-icon,
+.ui-icon {
   width: var(--pm-icon);
   height: var(--pm-icon);
   flex-shrink: 0;
 }
 
-.paint-floating-card-inner {
-  background: var(--paint-menu-card-surface);
+.ui-floating-card-inner {
+  background: var(--ui-menu-card-surface);
 }
 
-.paint-menu-title-card {
-  background: var(--paint-menu-card-surface);
-  color: var(--paint-menu-text);
+.ui-menu-title-card {
+  background: var(--ui-menu-card-surface);
+  color: var(--ui-menu-text);
 }
 
-.paint-menu-title-heading {
-  color: var(--paint-menu-text-strong);
+.ui-menu-title-heading {
+  color: var(--ui-menu-text-strong);
 }
 
-.paint-menu-title-badge {
-  background: var(--paint-menu-segment-surface);
-  color: var(--paint-menu-text-muted);
+.ui-menu-title-badge {
+  background: var(--ui-menu-segment-surface);
+  color: var(--ui-menu-text-muted);
 }
 
-.paint-menu-segmented {
-  background: var(--paint-menu-segment-surface);
+.ui-menu-segmented {
+  background: var(--ui-menu-segment-surface);
 }
 
-.paint-menu-segment {
-  color: var(--paint-menu-segment-text);
+.ui-menu-segment {
+  color: var(--ui-menu-segment-text);
 }
 
-.paint-menu-segment:hover {
-  background: var(--paint-menu-segment-hover-surface);
-  color: var(--paint-menu-text-strong);
+.ui-menu-segment:hover {
+  background: var(--ui-menu-segment-hover-surface);
+  color: var(--ui-menu-text-strong);
 }
 
-.paint-menu-segment-active {
-  background: var(--paint-menu-segment-active-surface);
-  color: var(--paint-menu-segment-text-active);
+.ui-menu-segment-active {
+  background: var(--ui-menu-segment-active-surface);
+  color: var(--ui-menu-segment-text-active);
   box-shadow: 0 10px 25px rgba(249, 115, 22, 0.20);
 }
 
-.paint-menu-segment-active:hover {
-  background: var(--paint-menu-segment-active-surface);
-  color: var(--paint-menu-segment-text-active);
+.ui-menu-segment-active:hover {
+  background: var(--ui-menu-segment-active-surface);
+  color: var(--ui-menu-segment-text-active);
   box-shadow: 0 10px 25px rgba(249, 115, 22, 0.20);
 }
 
-.paint-button {
-  color: var(--paint-menu-control-text);
-  background: var(--paint-menu-control-surface);
+.workspace-tool-button,
+.ui-button {
+  color: var(--ui-menu-control-text);
+  background: var(--ui-menu-control-surface);
   transition:
     background-color 180ms ease,
     color 180ms ease,
@@ -302,68 +314,74 @@ body {
     box-shadow 180ms ease;
 }
 
-.paint-button:hover {
-  background: var(--paint-menu-control-hover-surface);
+.workspace-tool-button:hover,
+.ui-button:hover {
+  background: var(--ui-menu-control-hover-surface);
 }
 
-.paint-button-active {
-  background: var(--paint-menu-control-active-surface);
-  color: var(--paint-menu-control-text-active);
-  box-shadow: 0 0 0 2px var(--paint-menu-control-ring);
+.workspace-tool-button-active,
+.ui-button-active {
+  background: var(--ui-menu-control-active-surface);
+  color: var(--ui-menu-control-text-active);
+  box-shadow: 0 0 0 2px var(--ui-menu-control-ring);
 }
 
-.paint-button-active:hover {
-  background: var(--paint-menu-control-active-surface);
+.workspace-tool-button-active:hover,
+.ui-button-active:hover {
+  background: var(--ui-menu-control-active-surface);
 }
 
-.paint-menu-handle,
-.paint-drag-handle {
-  color: var(--paint-menu-handle);
+.workspace-drag-handle,
+.workspace-menu-handle,
+.ui-menu-handle,
+.ui-drag-handle {
+  color: var(--ui-menu-handle);
 }
 
-.paint-drag-line {
-  border-color: var(--paint-menu-border-strong);
+.workspace-drag-line,
+.ui-drag-line {
+  border-color: var(--ui-menu-border-strong);
 }
 
-.paint-panel-title {
-  color: var(--paint-menu-text-strong);
+.ui-panel-title {
+  color: var(--ui-menu-text-strong);
 }
 
-.paint-panel-text {
-  color: var(--paint-menu-text);
+.ui-panel-text {
+  color: var(--ui-menu-text);
 }
 
-.paint-panel-muted {
-  color: var(--paint-menu-text-muted);
+.ui-panel-muted {
+  color: var(--ui-menu-text-muted);
 }
 
-.paint-panel-title-on-dark {
+.ui-panel-title-on-dark {
   color: var(--app-sidebar-title);
 }
 
-.paint-panel-text-on-dark {
+.ui-panel-text-on-dark {
   color: var(--app-sidebar-text);
 }
 
-.paint-panel-muted-on-dark {
+.ui-panel-muted-on-dark {
   color: var(--app-sidebar-text-muted);
 }
 
-.paint-input {
-  border: 1px solid var(--paint-input-border);
-  background: var(--paint-input-surface);
-  color: var(--paint-input-text);
+.ui-input {
+  border: 1px solid var(--ui-input-border);
+  background: var(--ui-input-surface);
+  color: var(--ui-input-text);
 }
 
-.paint-input:focus {
+.ui-input:focus {
   outline: none;
-  border-color: var(--paint-menu-control-active-surface);
-  box-shadow: 0 0 0 2px var(--paint-focus-ring);
+  border-color: var(--ui-menu-control-active-surface);
+  box-shadow: 0 0 0 2px var(--ui-focus-ring);
 }
 
-.paint-value-chip {
-  background: var(--paint-input-surface-muted);
-  color: var(--paint-menu-text);
+.ui-value-chip {
+  background: var(--ui-input-surface-muted);
+  color: var(--ui-menu-text);
 }
 
 /* Estilos para o slider */
@@ -372,50 +390,50 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--paint-slider-thumb);
+  background: var(--ui-slider-thumb);
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .slider::-webkit-slider-thumb:hover {
-  background: var(--paint-slider-thumb-hover);
+  background: var(--ui-slider-thumb-hover);
 }
 
 .slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--paint-slider-thumb);
+  background: var(--ui-slider-thumb);
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .slider::-moz-range-thumb:hover {
-  background: var(--paint-slider-thumb-hover);
+  background: var(--ui-slider-thumb-hover);
 }
 
 .settings-gear {
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
               color 0.3s ease-in-out;
   transform-origin: center;
 }
 
 .settings-gear-active {
   transform: rotate(180deg);
-  color: var(--paint-menu-control-text-active);
+  color: var(--ui-menu-control-text-active);
   animation: gear-pulse 2s ease-in-out infinite;
 }
 
 .settings-button {
-  transition: background-color 0.3s ease-in-out, 
+  transition: background-color 0.3s ease-in-out,
               transform 0.1s ease-in-out,
               box-shadow 0.2s ease-in-out;
 }
 
 .settings-button:hover {
-  background-color: var(--paint-menu-control-hover-surface);
+  background-color: var(--ui-menu-control-hover-surface);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -424,9 +442,9 @@ body {
 }
 
 .settings-button-active {
-  background-color: var(--paint-menu-control-active-surface);
-  box-shadow: 0 0 0 2px var(--paint-menu-control-ring);
-  color: var(--paint-menu-control-text-active);
+  background-color: var(--ui-menu-control-active-surface);
+  box-shadow: 0 0 0 2px var(--ui-menu-control-ring);
+  color: var(--ui-menu-control-text-active);
 }
 
 .scale-110 {
@@ -489,4 +507,3 @@ body {
     transform: translate(-50%, -50%) scale(1);
   }
 }
-

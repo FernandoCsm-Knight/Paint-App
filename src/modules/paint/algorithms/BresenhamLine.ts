@@ -1,4 +1,4 @@
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 const bresenham = (
     start: Point, 

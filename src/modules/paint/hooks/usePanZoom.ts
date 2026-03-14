@@ -2,7 +2,7 @@ import { useCallback, useContext, useRef } from "react";
 import type { PointerEvent, WheelEvent } from "react";
 import { PaintContext } from "../context/PaintContext";
 import { MAX_ZOOM, ZOOM_STEP } from "./useViewport";
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 const CANVAS_GROWTH_STEP = 1200;
 

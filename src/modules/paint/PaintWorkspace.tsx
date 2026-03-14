@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Menu from './components/menu/main/ui/Menu'
 import useCanvas from './hooks/useCanvas';
 import MenuProvider from './context/providers/MenuProvider';
@@ -7,12 +7,14 @@ import { ReplacementContext } from './context/ReplacementContext';
 import { SettingsContext } from './context/SettingsContext';
 import PageSizeEraser from './components/PageSizeEraser';
 import ModeManager from './components/ModeManager';
+import FloatingInfoBadge from '../../components/FloatingInfoBadge';
 
 function PaintWorkspace() {
     const paintContext = useContext(PaintContext)!;
-    const { canvasRef, containerRef, isPanModeActive, isCanvasPanning } = paintContext;
+    const { canvasRef, containerRef, isPanModeActive, isCanvasPanning, selectedShape } = paintContext;
     const { replacementCanvasRef } = useContext(ReplacementContext)!;
     const { gridDisplayMode, pageSizeEraser } = useContext(SettingsContext)!;
+    const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
 
     const {
         handlePointerDown,
@@ -60,6 +62,25 @@ function PaintWorkspace() {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [undo, redo, pasteSnapshot, copySnapshot]);
 
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const updateSize = () => {
+            setViewportSize({
+                width: Math.round(container.clientWidth),
+                height: Math.round(container.clientHeight),
+            });
+        };
+
+        updateSize();
+
+        const observer = new ResizeObserver(() => updateSize());
+        observer.observe(container);
+
+        return () => observer.disconnect();
+    }, [containerRef]);
+
     return (
         <>
             <ModeManager />
@@ -72,7 +93,7 @@ function PaintWorkspace() {
                     if ((e.target as HTMLElement).closest('[data-paint-menu]')) return;
                     handleWheel(e);
                 }}
-                className={`relative h-full min-h-0 w-full overflow-hidden ${isCanvasPanning ? 'cursor-grabbing' : isPanModeActive ? 'cursor-grab' : 'cursor-default'}`}
+                className={`relative h-full min-h-0 w-full overflow-hidden ${isCanvasPanning ? 'cursor-grabbing' : isPanModeActive ? 'cursor-grab' : selectedShape === 'polygon' ? 'cursor-crosshair' : 'cursor-default'}`}
             >
                 <div className="absolute inset-0 overflow-hidden">
                     <canvas
@@ -92,6 +113,11 @@ function PaintWorkspace() {
                     ></canvas>
                 </div>
                 {(pageSizeEraser) ? <PageSizeEraser/> : null}
+                <FloatingInfoBadge>
+                    {selectedShape === 'polygon'
+                        ? 'Clique para adicionar vértices · Enter para finalizar · Esc para cancelar · Duplo clique para fechar'
+                        : `${viewportSize.width} x ${viewportSize.height}`}
+                </FloatingInfoBadge>
             </main>
         </>
     );

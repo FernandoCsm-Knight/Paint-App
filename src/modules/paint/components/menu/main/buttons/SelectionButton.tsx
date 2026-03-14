@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { LuCrop } from "react-icons/lu";
 import { PaintContext } from "../../../../context/PaintContext";
 import { MenuContext } from "../../../../context/MenuContext";
-import PaintButton from "../../../PaintButton";
+import WorkspaceToolButton from "../../../../../../components/WorkspaceToolButton";
 
 
 const SelectionButton = () => {
@@ -23,9 +23,9 @@ const SelectionButton = () => {
     };
 
     return (
-        <PaintButton onClick={handleClick} stayActive active={isSelectionActive} ariaLabel={isSelectionActive ? 'Desativar seleção' : 'Ativar seleção'}>
-            <LuCrop className="paint-icon"/>
-        </PaintButton>
+        <WorkspaceToolButton onClick={handleClick} stayActive active={isSelectionActive} ariaLabel={isSelectionActive ? 'Desativar seleção' : 'Ativar seleção'}>
+            <LuCrop className="ui-icon"/>
+        </WorkspaceToolButton>
     );
 };
 

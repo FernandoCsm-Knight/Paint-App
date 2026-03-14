@@ -1,6 +1,7 @@
 import { Shape,  type ShapeOptions } from "./ShapeTypes";
 import { rasterizePolygon, rasterizePixelatedPolygon } from "../algorithms/PolygonRasterization";
-import { createPolygon, type Point } from "../types/Graphics";
+import { createPolygon } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 export default class Pentagon extends Shape {
     kind = 'pentagon' as const;

@@ -30,10 +30,10 @@ const SettingsButton = () => {
         >
             <LuSettings 
                 className={`
-                    settings-gear paint-icon
-                    ${settingsMenu 
-                        ? 'settings-gear-active' 
-                        : 'paint-menu-handle'
+                    settings-gear ui-icon
+                    ${settingsMenu
+                        ? 'settings-gear-active'
+                        : 'ui-menu-handle'
                     }
                 `}
             />

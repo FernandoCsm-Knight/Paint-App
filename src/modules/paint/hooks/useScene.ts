@@ -75,7 +75,7 @@ const useScene = () => {
      * the scene changed (so the caller can decide whether to re-render).
      */
     const undoScene = useCallback((ctx: CanvasRenderingContext2D): boolean => {
-        let response: boolean = sceneRef.current.length !== 0;
+        const response: boolean = sceneRef.current.length !== 0;
         
         if (response) {
             const removed = sceneRef.current.pop()!;
@@ -95,7 +95,7 @@ const useScene = () => {
      *     state for the next shape).
      */
     const redoScene = useCallback((ctx: CanvasRenderingContext2D): boolean => {
-        let response: boolean = redoStackRef.current.length !== 0;
+        const response: boolean = redoStackRef.current.length !== 0;
         
         if (response) {
             const shape = redoStackRef.current.pop()!;

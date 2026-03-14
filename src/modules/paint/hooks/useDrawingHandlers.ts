@@ -7,10 +7,12 @@ import generator from "../types/ShapeGenerator";
 import FreeForm from "../shapes/FreeForm";
 import FillShape from "../shapes/FillShape";
 import SnapshotShape from "../shapes/SnapshotShape";
-import { map, type Point } from "../types/Graphics";
+import { map } from "../types/Graphics";
 import useSelection from "./useSelection";
 import usePanZoom from "./usePanZoom";
+import usePolygonDrawing from "./usePolygonDrawing";
 import type { SceneItem } from "./useScene";
+import type { Point } from "../../../functions/geometry";
 
 type DrawingHandlersInput = {
     renderViewport: () => void;
@@ -54,6 +56,19 @@ const useDrawingHandlers = ({
         getMinAllowedZoom,
     });
 
+    const polygon = usePolygonDrawing({
+        contextRef,
+        renderViewport,
+        redrawFromScene,
+        pushShape,
+        currentColor,
+        thickness,
+        pixelated,
+        pixelSize,
+        lineAlgorithm,
+        selectedShape,
+    });
+
     const isDrawing = useRef(false);
     const start = useRef<Point>({ x: 0, y: 0 });
     const currentShape = useRef<Shape | null>(null);
@@ -78,13 +93,20 @@ const useDrawingHandlers = ({
         const ctx = contextRef.current;
         if (!canvas || !ctx) return;
 
-        canvas.setPointerCapture(e.pointerId);
         const point = getCanvasPoint(e);
         if (!point) return;
 
         const { x, y } = point;
+        const mappedPoint = pixelated ? map({ x, y }, pixelSize) : { x, y };
+
+        if (selectedShape === 'polygon') {
+            polygon.onPointerDown(mappedPoint);
+            return;
+        }
+
+        canvas.setPointerCapture(e.pointerId);
         isDrawing.current = true;
-        start.current = pixelated ? map({ x, y }, pixelSize) : { x, y };
+        start.current = mappedPoint;
 
         if (isSelectionActive) {
             startSelection({ x, y });
@@ -99,7 +121,7 @@ const useDrawingHandlers = ({
             fillShape.draw(ctx);
             currentShape.current = fillShape;
             renderViewport();
-        } else if (selectedShape === "freeform") {
+        } else if (selectedShape === 'freeform') {
             const form = new FreeForm([start.current], {
                 strokeStyle: currentColor.current,
                 lineWidth: thickness.current,
@@ -116,15 +138,11 @@ const useDrawingHandlers = ({
     }, [
         panDown, canvasRef, contextRef, getCanvasPoint, pixelated, pixelSize,
         isSelectionActive, startSelection, isFillActive, currentColor, isEraserActive,
-        selectedShape, thickness, lineAlgorithm, renderViewport,
+        selectedShape, thickness, lineAlgorithm, renderViewport, polygon,
     ]);
 
     const handlePointerMove = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
         if (panMove(e)) return;
-        if (!isDrawing.current) return;
-
-        const ctx = contextRef.current;
-        if (!ctx) return;
 
         const currentPoint = getCanvasPoint(e);
         if (!currentPoint) return;
@@ -132,12 +150,22 @@ const useDrawingHandlers = ({
         const { x, y } = currentPoint;
         const point = pixelated ? map({ x, y }, pixelSize) : { x, y };
 
+        if (selectedShape === 'polygon') {
+            polygon.onPointerMove(point);
+            return;
+        }
+
+        if (!isDrawing.current) return;
+
+        const ctx = contextRef.current;
+        if (!ctx) return;
+
         if (isSelectionActive) {
             updateSelection({ x, y });
             return;
         }
 
-        if (selectedShape === "freeform") {
+        if (selectedShape === 'freeform') {
             if (currentShape.current instanceof FreeForm) {
                 currentShape.current.lineTo(point, ctx);
                 renderViewport();
@@ -172,11 +200,12 @@ const useDrawingHandlers = ({
     }, [
         panMove, contextRef, getCanvasPoint, pixelated, pixelSize,
         isSelectionActive, updateSelection, selectedShape, redrawFromScene,
-        currentColor, thickness, lineAlgorithm, renderViewport,
+        currentColor, thickness, lineAlgorithm, renderViewport, polygon,
     ]);
 
     const handlePointerUp = useCallback((e?: PointerEvent<HTMLCanvasElement>) => {
         if (panUp(e)) return;
+        if (selectedShape === 'polygon') return;
 
         if (isDrawing.current) {
             if (rafId.current !== null) {
@@ -201,14 +230,14 @@ const useDrawingHandlers = ({
             currentShape.current = null;
             if (ctx) {
                 ctx.beginPath();
-                ctx.globalCompositeOperation = "source-over";
+                ctx.globalCompositeOperation = 'source-over';
             }
         }
 
         if (e?.currentTarget.hasPointerCapture(e.pointerId)) {
             e.currentTarget.releasePointerCapture(e.pointerId);
         }
-    }, [panUp, contextRef, isSelectionActive, renderViewport, pushShape, takeSnapshotShape, stopSelection]);
+    }, [panUp, selectedShape, contextRef, isSelectionActive, renderViewport, pushShape, takeSnapshotShape, stopSelection]);
 
     return {
         handlePointerDown,

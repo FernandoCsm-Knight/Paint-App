@@ -1,14 +1,14 @@
-import { createContext, type CSSProperties, type ReactNode, useMemo } from "react";
+import { createContext, type CSSProperties, type ReactNode, useContext, useMemo, useState } from "react";
 import { defaultAppPalette, type AppPalette } from "./palettes";
 
 type ThemeContextType = {
     palette: AppPalette;
+    setActivePalette: (palette: AppPalette) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 type ThemeProviderProps = {
-    palette?: AppPalette;
     children: ReactNode;
 };
 
@@ -46,43 +46,54 @@ const paletteToCssVariables = (palette: AppPalette): CSSProperties => ({
     "--app-mobile-pill-surface": palette.shell.mobilePillSurface,
     "--app-mobile-pill-border": palette.shell.mobilePillBorder,
     "--app-workspace-gradient": palette.shell.workspaceGradient,
-    "--paint-menu-surface": palette.paint.menuSurface,
-    "--paint-menu-card-surface": palette.paint.menuCardSurface,
-    "--paint-menu-border": palette.paint.menuBorder,
-    "--paint-menu-border-strong": palette.paint.menuBorderStrong,
-    "--paint-menu-text": palette.paint.menuText,
-    "--paint-menu-text-muted": palette.paint.menuTextMuted,
-    "--paint-menu-text-strong": palette.paint.menuTextStrong,
-    "--paint-menu-handle": palette.paint.menuHandle,
-    "--paint-menu-control-surface": palette.paint.menuControlSurface,
-    "--paint-menu-control-hover-surface": palette.paint.menuControlHoverSurface,
-    "--paint-menu-control-active-surface": palette.paint.menuControlActiveSurface,
-    "--paint-menu-control-ring": palette.paint.menuControlRing,
-    "--paint-menu-control-text": palette.paint.menuControlText,
-    "--paint-menu-control-text-active": palette.paint.menuControlTextActive,
-    "--paint-menu-segment-surface": palette.paint.menuSegmentSurface,
-    "--paint-menu-segment-hover-surface": palette.paint.menuSegmentHoverSurface,
-    "--paint-menu-segment-active-surface": palette.paint.menuSegmentActiveSurface,
-    "--paint-menu-segment-text": palette.paint.menuSegmentText,
-    "--paint-menu-segment-text-active": palette.paint.menuSegmentTextActive,
-    "--paint-input-surface": palette.paint.inputSurface,
-    "--paint-input-surface-muted": palette.paint.inputSurfaceMuted,
-    "--paint-input-border": palette.paint.inputBorder,
-    "--paint-input-text": palette.paint.inputText,
-    "--paint-input-muted": palette.paint.inputMuted,
-    "--paint-focus-ring": palette.paint.focusRing,
-    "--paint-slider-thumb": palette.paint.sliderThumb,
-    "--paint-slider-thumb-hover": palette.paint.sliderThumbHover,
+    "--ui-menu-surface": palette.ui.menuSurface,
+    "--ui-menu-card-surface": palette.ui.menuCardSurface,
+    "--ui-menu-border": palette.ui.menuBorder,
+    "--ui-menu-border-strong": palette.ui.menuBorderStrong,
+    "--ui-menu-text": palette.ui.menuText,
+    "--ui-menu-text-muted": palette.ui.menuTextMuted,
+    "--ui-menu-text-strong": palette.ui.menuTextStrong,
+    "--ui-menu-handle": palette.ui.menuHandle,
+    "--ui-menu-control-surface": palette.ui.menuControlSurface,
+    "--ui-menu-control-hover-surface": palette.ui.menuControlHoverSurface,
+    "--ui-menu-control-active-surface": palette.ui.menuControlActiveSurface,
+    "--ui-menu-control-ring": palette.ui.menuControlRing,
+    "--ui-menu-control-text": palette.ui.menuControlText,
+    "--ui-menu-control-text-active": palette.ui.menuControlTextActive,
+    "--ui-menu-segment-surface": palette.ui.menuSegmentSurface,
+    "--ui-menu-segment-hover-surface": palette.ui.menuSegmentHoverSurface,
+    "--ui-menu-segment-active-surface": palette.ui.menuSegmentActiveSurface,
+    "--ui-menu-segment-text": palette.ui.menuSegmentText,
+    "--ui-menu-segment-text-active": palette.ui.menuSegmentTextActive,
+    "--ui-input-surface": palette.ui.inputSurface,
+    "--ui-input-surface-muted": palette.ui.inputSurfaceMuted,
+    "--ui-input-border": palette.ui.inputBorder,
+    "--ui-input-text": palette.ui.inputText,
+    "--ui-input-muted": palette.ui.inputMuted,
+    "--ui-focus-ring": palette.ui.focusRing,
+    "--ui-slider-thumb": palette.ui.sliderThumb,
+    "--ui-slider-thumb-hover": palette.ui.sliderThumbHover,
 } as CSSProperties);
 
-export const ThemeProvider = ({ palette = defaultAppPalette, children }: ThemeProviderProps) => {
-    const value = useMemo(() => ({ palette }), [palette]);
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+    const [activePalette, setActivePalette] = useState<AppPalette>(defaultAppPalette);
+
+    const value = useMemo(
+        () => ({ palette: activePalette, setActivePalette }),
+        [activePalette],
+    );
 
     return (
         <ThemeContext.Provider value={value}>
-            <div className="app-theme h-full w-full" style={paletteToCssVariables(palette)}>
+            <div className="app-theme h-full w-full" style={paletteToCssVariables(activePalette)}>
                 {children}
             </div>
         </ThemeContext.Provider>
     );
+};
+
+export const useTheme = (): ThemeContextType => {
+    const ctx = useContext(ThemeContext);
+    if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
+    return ctx;
 };

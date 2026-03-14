@@ -1,6 +1,6 @@
 import { LuEraser } from "react-icons/lu";
 import { useContext } from "react";
-import PaintButton from "../../../PaintButton";
+import WorkspaceToolButton from "../../../../../../components/WorkspaceToolButton";
 import { PaintContext } from "../../../../context/PaintContext";
 
 const EraserButton = () => {
@@ -17,14 +17,14 @@ const EraserButton = () => {
     };
 
     return (
-        <PaintButton
+        <WorkspaceToolButton
             onClick={handleClick}
             stayActive
             active={isEraserActive}
             ariaLabel={isEraserActive ? "Desativar borracha" : "Ativar borracha"}
         >
-            <LuEraser className="paint-icon" />
-        </PaintButton>
+            <LuEraser className="ui-icon" />
+        </WorkspaceToolButton>
     );
 };
 

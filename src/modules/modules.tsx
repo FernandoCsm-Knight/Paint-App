@@ -22,8 +22,8 @@ export const graphicsModules: GraphicsModule[] = [
     {
         id: 'graph',
         name: 'Graph',
-        description: 'Reserved workspace for graph creation, editing, and visual algorithms.',
-        status: 'planned',
+        description: 'Interactive 2D graph builder with vertex/edge editing and algorithm execution on the user graph.',
+        status: 'available',
         surface: GraphModule,
     },
     {

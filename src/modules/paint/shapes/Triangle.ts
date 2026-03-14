@@ -1,6 +1,7 @@
 import { Shape, type ShapeOptions } from "./ShapeTypes";
 import { rasterizePixelatedPolygon, rasterizePolygon } from "../algorithms/PolygonRasterization";
-import { lineInfo, type Point } from "../types/Graphics";
+import { lineInfo } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 export default class Triangle extends Shape {
     kind = 'triangle' as const;

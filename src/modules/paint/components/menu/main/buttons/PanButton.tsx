@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { LuHand } from "react-icons/lu";
 import { PaintContext } from "../../../../context/PaintContext";
 import { MenuContext } from "../../../../context/MenuContext";
-import PaintButton from "../../../PaintButton";
+import WorkspaceToolButton from "../../../../../../components/WorkspaceToolButton";
 
 const PanButton = () => {
     const { isPanModeActive, setPanModeActive, setEraser, setFill, setSelectionActive, setSelectedShape } = useContext(PaintContext)!;
@@ -22,14 +22,14 @@ const PanButton = () => {
     };
 
     return (
-        <PaintButton
+        <WorkspaceToolButton
             onClick={handleClick}
             stayActive
             active={isPanModeActive}
             ariaLabel={isPanModeActive ? "Desativar arraste do canvas" : "Ativar arraste do canvas"}
         >
-            <LuHand className="paint-icon" />
-        </PaintButton>
+            <LuHand className="ui-icon" />
+        </WorkspaceToolButton>
     );
 };
 

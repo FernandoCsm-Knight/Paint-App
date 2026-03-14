@@ -1,5 +1,6 @@
 import { createContext, type Dispatch, type RefObject, type SetStateAction } from "react";
-import type { Geometric, Point } from "../types/Graphics";
+import type { Geometric } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 
 export type PaintContextType = {
     canvasRef: RefObject<HTMLCanvasElement | null>;

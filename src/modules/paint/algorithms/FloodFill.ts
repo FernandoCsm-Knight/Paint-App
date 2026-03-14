@@ -1,4 +1,5 @@
-import { isSameColor, pixelCenter, type Point, type RGBA } from "../types/Graphics";
+import { hexToRgb, type Point, type RGBA } from "../../../functions/geometry";
+import { isSameColor, pixelCenter } from "../types/Graphics";
 
 export default class FloodFill {
     static fill(
@@ -10,7 +11,7 @@ export default class FloodFill {
         pixelated: boolean
     ): void {
         const canvas = ctx.canvas;
-        const fillColorRgb = isEraser ? { r: 0, g: 0, b: 0, a: 0 } : this.hexToRgb(fillColor);
+        const fillColorRgb = isEraser ? { r: 0, g: 0, b: 0, a: 0 } : hexToRgb(fillColor);
 
         const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = image.data;
@@ -190,15 +191,5 @@ export default class FloodFill {
         }
 
         ctx.putImageData(image, 0, 0);
-    }
-
-    private static hexToRgb(hex: string): RGBA {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex) ?? ["00", "00", "00"];
-        return {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16),
-            a: 255
-        };
     }
 }

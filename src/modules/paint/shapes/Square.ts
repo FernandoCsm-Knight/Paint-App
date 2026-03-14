@@ -1,4 +1,4 @@
-import type { Point } from "../types/Graphics";
+import type { Point } from "../../../functions/geometry";
 import { Shape, type ShapeOptions } from "./ShapeTypes";
 
 export default class Square extends Shape {

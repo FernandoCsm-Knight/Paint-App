@@ -1,9 +1,9 @@
 import { useCallback, useContext, useRef } from "react";
 import { PaintContext } from "../context/PaintContext";
-import type { Point } from "../types/Graphics";
 import { ReplacementContext } from "../context/ReplacementContext";
 import { SettingsContext } from "../context/SettingsContext";
 import { ClipboardImageLoader } from "../utils/ClipboardImageLoader";
+import type { Point } from "../../../functions/geometry";
 
 const useSelection = () => {
     const {

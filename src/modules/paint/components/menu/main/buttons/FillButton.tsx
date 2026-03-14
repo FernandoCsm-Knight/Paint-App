@@ -2,7 +2,7 @@ import { LuPaintBucket } from "react-icons/lu";
 import { useContext } from "react";
 import { PaintContext } from "../../../../context/PaintContext";
 import { MenuContext } from "../../../../context/MenuContext";
-import PaintButton from "../../../PaintButton";
+import WorkspaceToolButton from "../../../../../../components/WorkspaceToolButton";
 
 const FillButton = () => {
     const { isFillActive, setFill, setEraser, setPanModeActive, setSelectionActive, setSelectedShape } = useContext(PaintContext)!;
@@ -22,9 +22,9 @@ const FillButton = () => {
     };
 
     return (
-        <PaintButton onClick={handleClick} stayActive active={isFillActive}>
-            <LuPaintBucket className="paint-icon"/>
-        </PaintButton>
+        <WorkspaceToolButton onClick={handleClick} stayActive active={isFillActive}>
+            <LuPaintBucket className="ui-icon"/>
+        </WorkspaceToolButton>
     );
 };
 

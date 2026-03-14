@@ -1,4 +1,5 @@
-import { isSameColor, pixelCenter, type Point, type RGBA } from "../types/Graphics";
+import type { Point, RGBA } from "../../../functions/geometry";
+import { isSameColor, pixelCenter } from "../types/Graphics";
 
 export default class ScanLineFill {
     static fill(
