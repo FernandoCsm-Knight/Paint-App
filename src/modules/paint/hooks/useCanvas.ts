@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useRef } from "react";
 import { PaintContext } from "../context/PaintContext";
 import { ReplacementContext } from "../context/ReplacementContext";
 import { ClipboardImageLoader } from "../utils/ClipboardImageLoader";
+import ImageShape from "../shapes/ImageShape";
 import useViewport from "./useViewport";
 import useDrawingHandlers from "./useDrawingHandlers";
 import useScene from "./useScene";
@@ -80,8 +81,16 @@ const useCanvas = () => {
     const pasteSnapshot = useCallback(async () => {
         const ctx = contextRef.current;
         if (!ctx) return;
-        pushShape(takeSnapshotShape(ctx));
-    }, [contextRef, pushShape, takeSnapshotShape]);
+        try {
+            const img = await ClipboardImageLoader.loadImageFromClipboard();
+            const imageShape = new ImageShape(img, 0, 0, img.naturalWidth, img.naturalHeight);
+            imageShape.draw(ctx);
+            pushShape(imageShape);
+            renderViewport();
+        } catch {
+            alert('Falha ao colar imagem da área de transferência');
+        }
+    }, [contextRef, pushShape, renderViewport]);
 
     useEffect(() => {
         const setupCanvas = () => {

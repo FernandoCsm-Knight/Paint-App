@@ -1,16 +1,19 @@
 import { useCallback, useRef } from "react";
 import { Shape } from "../shapes/ShapeTypes";
 import SnapshotShape from "../shapes/SnapshotShape";
+import ImageShape from "../shapes/ImageShape";
 
 /**
- * A scene item is either a lightweight vector shape (geometry + style data)
- * or a SnapshotShape (a full raster checkpoint of the canvas bitmap).
+ * A scene item is either a lightweight vector shape (geometry + style data),
+ * a SnapshotShape (a full raster checkpoint of the canvas bitmap),
+ * or an ImageShape (a placed image with position and dimensions).
  *
  * Vector shapes are cheap to store (~100 bytes) and cheap to replay.
  * SnapshotShapes are expensive to store (~15 MB) but instantaneous to restore
  * via putImageData — used for freeform strokes and fill operations.
+ * ImageShapes store an HTMLImageElement reference and are replayed via drawImage.
  */
-export type SceneItem = Shape | SnapshotShape;
+export type SceneItem = Shape | SnapshotShape | ImageShape;
 
 /**
  * Manages the ordered list of drawn items and the redo stack.

@@ -110,79 +110,77 @@ const Sidebar = ({
                     </div>
                 </div>
 
-                <div className="scrollbar flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 pb-32 lg:px-5 lg:pb-32">
-                    <div className="space-y-6">
-                        <div className="space-y-3">
-                            <div
-                                className={`sidebar-panel-copy theme-sidebar-copy-muted flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] ${
-                                    isCollapsed
-                                        ? 'lg:pointer-events-none lg:max-h-0 lg:-translate-y-2 lg:opacity-0'
-                                        : 'lg:max-h-10 lg:translate-y-0 lg:opacity-100'
-                                }`}
-                            >
-                                <LuPanelsTopLeft className="h-4 w-4" />
-                                Modules
-                            </div>
-
-                            {modules.map((module) => {
-                                const isActive = module.id === activeModule.id;
-
-                                return (
-                                    <RippleButton
-                                        key={module.id}
-                                        controlId={`module-${module.id}`}
-                                        className={`module-card module-card-button w-full rounded-3xl text-left transition duration-200 ${
-                                            isCollapsed
-                                                ? 'lg:flex lg:min-h-16 lg:items-center lg:justify-center lg:px-0 lg:py-4'
-                                                : 'px-4 py-4'
-                                        } ${
-                                            isActive
-                                                ? 'theme-module-card-active ring-1'
-                                                : 'theme-module-card-idle'
-                                        }`}
-                                        ariaLabel={
-                                            isCollapsed
-                                                ? `Abrir modulo ${module.name}`
-                                                : undefined
-                                        }
-                                        title={isCollapsed ? module.name : undefined}
-                                        onClick={() => onSelectModule(module.id)}
-                                    >
-                                        {isCollapsed ? (
-                                            <span
-                                                className={`text-sm font-semibold uppercase tracking-[0.28em] ${
-                                                    isActive
-                                                        ? 'theme-module-accent-text'
-                                                        : 'theme-sidebar-copy-muted'
-                                                }`}
-                                            >
-                                                {module.name.slice(0, 2)}
-                                            </span>
-                                        ) : (
-                                            <>
-                                                <div className="mb-2 flex items-center justify-between gap-3">
-                                                    <span className="theme-sidebar-title text-lg font-medium">
-                                                        {module.name}
-                                                    </span>
-                                                    <span
-                                                        className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${
-                                                            module.status === 'available'
-                                                                ? 'theme-status-available'
-                                                                : 'theme-status-soon'
-                                                        }`}
-                                                    >
-                                                        {module.status}
-                                                    </span>
-                                                </div>
-                                                <p className="theme-sidebar-copy text-sm leading-6">
-                                                    {module.description}
-                                                </p>
-                                            </>
-                                        )}
-                                    </RippleButton>
-                                );
-                            })}
+                <div className="scrollbar grow overflow-x-hidden overflow-y-auto px-4 py-5 lg:px-5">
+                    <div className="space-y-3">
+                        <div
+                            className={`sidebar-panel-copy theme-sidebar-copy-muted flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] ${
+                                isCollapsed
+                                    ? 'lg:pointer-events-none lg:max-h-0 lg:-translate-y-2 lg:opacity-0'
+                                    : 'lg:max-h-10 lg:translate-y-0 lg:opacity-100'
+                            }`}
+                        >
+                            <LuPanelsTopLeft className="h-4 w-4" />
+                            Modules
                         </div>
+
+                        {modules.map((module) => {
+                            const isActive = module.id === activeModule.id;
+
+                            return (
+                                <RippleButton
+                                    key={module.id}
+                                    controlId={`module-${module.id}`}
+                                    className={`module-card module-card-button w-full rounded-3xl text-left transition duration-200 ${
+                                        isCollapsed
+                                            ? 'lg:flex lg:min-h-16 lg:items-center lg:justify-center lg:px-0 lg:py-4'
+                                            : 'px-4 py-4'
+                                    } ${
+                                        isActive
+                                            ? 'theme-module-card-active ring-1'
+                                            : 'theme-module-card-idle'
+                                    }`}
+                                    ariaLabel={
+                                        isCollapsed
+                                            ? `Abrir modulo ${module.name}`
+                                            : undefined
+                                    }
+                                    title={isCollapsed ? module.name : undefined}
+                                    onClick={() => onSelectModule(module.id)}
+                                >
+                                    {isCollapsed ? (
+                                        <span
+                                            className={`text-sm font-semibold uppercase tracking-[0.28em] ${
+                                                isActive
+                                                    ? 'theme-module-accent-text'
+                                                    : 'theme-sidebar-copy-muted'
+                                            }`}
+                                        >
+                                            {module.name.slice(0, 2)}
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <div className="mb-2 flex items-center justify-between gap-3">
+                                                <span className="theme-sidebar-title text-lg font-medium">
+                                                    {module.name}
+                                                </span>
+                                                <span
+                                                    className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${
+                                                        module.status === 'available'
+                                                            ? 'theme-status-available'
+                                                            : 'theme-status-soon'
+                                                    }`}
+                                                >
+                                                    {module.status}
+                                                </span>
+                                            </div>
+                                            <p className="theme-sidebar-copy text-sm leading-6">
+                                                {module.description}
+                                            </p>
+                                        </>
+                                    )}
+                                </RippleButton>
+                            );
+                        })}
                     </div>
                 </div>
 

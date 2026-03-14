@@ -61,7 +61,7 @@ const ThemePicker = ({ isCollapsed }: ThemePickerProps) => {
 
     return (
         <div
-            className="absolute bottom-0 left-0 right-0 border-t px-4 py-3"
+            className="border-t px-4 py-3"
             style={{
                 borderColor: 'var(--app-sidebar-border)',
                 background: 'var(--app-sidebar-surface)',
