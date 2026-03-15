@@ -3,11 +3,18 @@ import type { RefObject } from "react";
 import { PaintContext } from "../context/PaintContext";
 import { ReplacementContext } from "../context/ReplacementContext";
 import { SettingsContext } from "../context/SettingsContext";
-import { cohenSutherland, type ClipWindow } from "../algorithms/CohenSutherland";
-import { liangBarsky } from "../algorithms/LiangBarsky";
-import { sutherlandHodgman } from "../algorithms/SutherlandHodgman";
-import { Shape } from "../shapes/ShapeTypes";
+import type { BoundingBox } from "../shapes/ShapeTypes";
 import SnapshotShape from "../shapes/SnapshotShape";
+import {
+    getInclusivePixelBoundingBox,
+    isPointInsideBoundingBoxInclusive,
+    moveBoundingBox,
+} from "../utils/boundingBox";
+import {
+    clipSceneItemsToPixelBounds,
+    createPixelBoundsFromDocPoints,
+    type PixelClipShape,
+} from "../utils/pixelClipping";
 import type { SceneItem } from "./useScene";
 import type { Point } from "../../../functions/geometry";
 
@@ -37,29 +44,13 @@ type StandardFloat = {
 /** Floating state for pixelated mode (line or polygon clip). */
 type PixelFloat = {
     kind: 'pixel';
-    shapes: (Shape & { start?: Point; end?: Point; points?: Point[] })[];
+    shapes: PixelClipShape[];
     keepInScene: SceneItem[];
-    /** Current selection rect in doc-space (canvas) pixels — tracks with drag. */
-    rectX: number;
-    rectY: number;
-    rectW: number;
-    rectH: number;
+    /** Bounding box in grid units, using the same inclusive convention as pending placement. */
+    bounds: BoundingBox;
 };
 
 type FloatState = StandardFloat | PixelFloat;
-
-// ─── Shape type guards ────────────────────────────────────────────────────────
-
-type LineShape  = Shape & { start: Point; end: Point };
-type PolyShape  = Shape & { points: Point[] };
-
-function isLineShape(s: Shape): s is LineShape {
-    return s.kind === 'line' || s.kind === 'arrow';
-}
-
-function isPolyShape(s: Shape): s is PolyShape {
-    return 'points' in s && Array.isArray((s as PolyShape).points);
-}
 
 // ─── Replay helper (mirrors redrawFromScene but on an arbitrary item list) ──
 
@@ -153,6 +144,11 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
         overlay.restore();
     }, [replacementContextRef, zoom, viewOffset]);
 
+    const drawPixelFloatOverlay = useCallback((bounds: BoundingBox) => {
+        const rect = getInclusivePixelBoundingBox(bounds, pixelSize);
+        drawSelectionOverlay(rect.x, rect.y, rect.width, rect.height);
+    }, [drawSelectionOverlay, pixelSize]);
+
     // ── Enter floating for STANDARD mode ──────────────────────────────────────
 
     const enterStandardFloat = useCallback((
@@ -175,50 +171,15 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
 
     const enterPixelFloat = useCallback((
         ctx: CanvasRenderingContext2D,
-        sx: number, sy: number, sw: number, sh: number,
+        selectionBounds: BoundingBox,
     ) => {
-        const scene = sceneRef.current;
-        const isLineCut = clipAlgorithm !== 'sutherland-hodgman';
+        const { floatingShapes, keepInScene, floatingBounds } = clipSceneItemsToPixelBounds({
+            scene: sceneRef.current,
+            clipAlgorithm,
+            bounds: selectionBounds,
+        });
 
-        // Build clip window in pixel-grid units (shapes store grid coords)
-        const win: ClipWindow = {
-            xMin: sx / pixelSize,
-            yMin: sy / pixelSize,
-            xMax: (sx + sw) / pixelSize,
-            yMax: (sy + sh) / pixelSize,
-        };
-
-        const floatingShapes: PolyShape[] | LineShape[] = [];
-        const keepInScene: SceneItem[] = [];
-
-        for (const item of scene) {
-            if (!(item instanceof Shape)) { keepInScene.push(item); continue; }
-
-            if (isLineCut && isLineShape(item)) {
-                const fn = clipAlgorithm === 'liang-barsky' ? liangBarsky : cohenSutherland;
-                const clipped = fn(item.start, item.end, win);
-                if (clipped) {
-                    // Clip the shape in-place (it will become floating)
-                    item.start = clipped.p1;
-                    item.end   = clipped.p2;
-                    (floatingShapes as LineShape[]).push(item);
-                } else {
-                    keepInScene.push(item); // entirely outside — stays in scene
-                }
-            } else if (!isLineCut && isPolyShape(item)) {
-                const clipped = sutherlandHodgman(item.points, win);
-                if (clipped.length >= 2) {
-                    item.points = clipped;
-                    (floatingShapes as PolyShape[]).push(item);
-                } else {
-                    keepInScene.push(item);
-                }
-            } else {
-                keepInScene.push(item);
-            }
-        }
-
-        if (floatingShapes.length === 0) {
+        if (floatingShapes.length === 0 || !floatingBounds) {
             // Nothing to float — just clear selection overlay
             renderViewport();
             phase.current = 'idle';
@@ -227,9 +188,9 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
 
         const pf: PixelFloat = {
             kind: 'pixel',
-            shapes: floatingShapes as PixelFloat['shapes'],
+            shapes: floatingShapes,
             keepInScene,
-            rectX: sx, rectY: sy, rectW: sw, rectH: sh,
+            bounds: floatingBounds,
         };
         floatState.current = pf;
         phase.current = 'floating';
@@ -241,8 +202,8 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
         // Draw floating shapes at their initial position
         for (const s of floatingShapes) s.draw(ctx);
         renderViewport();
-        drawSelectionOverlay(sx, sy, sw, sh);
-    }, [sceneRef, clipAlgorithm, pixelSize, pushShape, takeSnapshotShape, renderViewport, drawSelectionOverlay]);
+        drawPixelFloatOverlay(floatingBounds);
+    }, [sceneRef, clipAlgorithm, pushShape, takeSnapshotShape, renderViewport, drawPixelFloatOverlay]);
 
     // ── commitFloating ─────────────────────────────────────────────────────────
 
@@ -264,7 +225,6 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
         pushShape(takeSnapshotShape(ctx));
         renderViewport();
 
-        phase.current      = 'floating'; // will be set to idle below
         floatState.current = null;
         dragStart.current  = null;
         phase.current      = 'idle';
@@ -294,21 +254,37 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
         selEnd.current   = p;
         phase.current    = 'drawing';
         renderViewport();
+
+        if (pixelated) {
+            const bounds = createPixelBoundsFromDocPoints(p, p, pixelSize);
+            const rect = getInclusivePixelBoundingBox(bounds, pixelSize);
+            drawSelectionOverlay(rect.x, rect.y, rect.width, rect.height);
+            return;
+        }
+
         drawSelectionOverlay(p.x, p.y, 0, 0);
-    }, [snap, renderViewport, drawSelectionOverlay]);
+    }, [snap, renderViewport, drawSelectionOverlay, pixelated, pixelSize]);
 
     const updateSelection = useCallback((point: Point) => {
         if (!selStart.current) return;
         const nx = snap(point.x);
         const ny = snap(point.y);
         selEnd.current = { x: nx, y: ny };
+        renderViewport();
+
+        if (pixelated) {
+            const bounds = createPixelBoundsFromDocPoints(selStart.current, selEnd.current, pixelSize);
+            const rect = getInclusivePixelBoundingBox(bounds, pixelSize);
+            drawSelectionOverlay(rect.x, rect.y, rect.width, rect.height);
+            return;
+        }
+
         const sx = Math.min(selStart.current.x, nx);
         const sy = Math.min(selStart.current.y, ny);
         const w  = Math.abs(nx - selStart.current.x);
         const h  = Math.abs(ny - selStart.current.y);
-        renderViewport();
         drawSelectionOverlay(sx, sy, w, h);
-    }, [snap, renderViewport, drawSelectionOverlay]);
+    }, [snap, renderViewport, drawSelectionOverlay, pixelated, pixelSize]);
 
     const stopSelection = useCallback(() => {
         const ctx = contextRef.current;
@@ -318,29 +294,39 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
             return;
         }
 
-        const sx = Math.min(selStart.current.x, selEnd.current.x);
-        const sy = Math.min(selStart.current.y, selEnd.current.y);
-        const sw = Math.abs(selEnd.current.x - selStart.current.x);
-        const sh = Math.abs(selEnd.current.y - selStart.current.y);
+        const startPoint = selStart.current;
+        const endPoint = selEnd.current;
 
         selStart.current = null;
         selEnd.current   = null;
-
-        if (sw < 2 || sh < 2) {
-            phase.current = 'idle';
-            renderViewport();
-            return;
-        }
 
         // Save scene before any modification (needed for cancel and commit)
         savedScene.current = [...sceneRef.current];
 
         if (pixelated) {
-            enterPixelFloat(ctx, sx, sy, sw, sh);
+            const selectionBounds = createPixelBoundsFromDocPoints(startPoint, endPoint, pixelSize);
+            if (selectionBounds.width === 0 && selectionBounds.height === 0) {
+                phase.current = 'idle';
+                renderViewport();
+                return;
+            }
+
+            enterPixelFloat(ctx, selectionBounds);
         } else {
+            const sx = Math.min(startPoint.x, endPoint.x);
+            const sy = Math.min(startPoint.y, endPoint.y);
+            const sw = Math.abs(endPoint.x - startPoint.x);
+            const sh = Math.abs(endPoint.y - startPoint.y);
+
+            if (sw < 2 || sh < 2) {
+                phase.current = 'idle';
+                renderViewport();
+                return;
+            }
+
             enterStandardFloat(ctx, sx, sy, sw, sh);
         }
-    }, [contextRef, sceneRef, pixelated, renderViewport, enterPixelFloat, enterStandardFloat]);
+    }, [contextRef, sceneRef, pixelated, pixelSize, renderViewport, enterPixelFloat, enterStandardFloat]);
 
     // ── Floating phase pointer events ──────────────────────────────────────────
 
@@ -348,11 +334,11 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
     const isInsideFloat = (p: Point): boolean => {
         const fs = floatState.current;
         if (!fs) return false;
-        const rx = fs.kind === 'standard' ? fs.x : fs.rectX / pixelSize;
-        const ry = fs.kind === 'standard' ? fs.y : fs.rectY / pixelSize;
-        const rw = fs.kind === 'standard' ? fs.w : fs.rectW / pixelSize;
-        const rh = fs.kind === 'standard' ? fs.h : fs.rectH / pixelSize;
-        return p.x >= rx && p.x <= rx + rw && p.y >= ry && p.y <= ry + rh;
+        if (fs.kind === 'standard') {
+            return p.x >= fs.x && p.x <= fs.x + fs.w && p.y >= fs.y && p.y <= fs.y + fs.h;
+        }
+
+        return isPointInsideBoundingBoxInclusive(p, fs.bounds);
     };
 
     const onPointerDown = useCallback((docPoint: Point): boolean => {
@@ -363,7 +349,6 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
             commitFloating();
         }
         return true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [commitFloating]);
 
     const onPointerMove = useCallback((docPoint: Point): boolean => {
@@ -389,16 +374,15 @@ const useSelection = ({ sceneRef, redrawFromScene, pushShape, takeSnapshotShape 
             const dy = docPoint.y - dragStart.current.y;
             dragStart.current = docPoint;
             for (const s of fs.shapes) s.moveBy(dx, dy);
-            fs.rectX += dx * pixelSize;
-            fs.rectY += dy * pixelSize;
+            fs.bounds = moveBoundingBox(fs.bounds, dx, dy);
             replayItems(ctx, fs.keepInScene);
             for (const s of fs.shapes) s.draw(ctx);
             renderViewport();
-            drawSelectionOverlay(fs.rectX, fs.rectY, fs.rectW, fs.rectH);
+            drawPixelFloatOverlay(fs.bounds);
         }
 
         return true;
-    }, [contextRef, redrawFromScene, renderViewport, drawStandardFloatOverlay, drawSelectionOverlay, pixelSize]);
+    }, [contextRef, redrawFromScene, renderViewport, drawStandardFloatOverlay, drawPixelFloatOverlay]);
 
     const onPointerUp = useCallback((): boolean => {
         if (phase.current !== 'floating') return false;

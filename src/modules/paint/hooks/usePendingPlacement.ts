@@ -3,6 +3,7 @@ import { PaintContext } from "../context/PaintContext";
 import { ReplacementContext } from "../context/ReplacementContext";
 import { Shape } from "../shapes/ShapeTypes";
 import type { BoundingBox } from "../shapes/ShapeTypes";
+import { getShapeBoundingBoxInDocSpace } from "../utils/boundingBox";
 import type { SceneItem } from "./useScene";
 import type { Point } from "../../../functions/geometry";
 
@@ -88,14 +89,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         const cornerSize = 6 / scale;
 
         // Pixelated shapes store coordinates in grid-units; convert to canvas pixels.
-        const pixelScale = shape.pixelated ? shape.pixelSize : 1;
-        const rawBB = shape.getBoundingBox();
-        const bb = {
-            x:      rawBB.x * pixelScale,
-            y:      rawBB.y * pixelScale,
-            width:  rawBB.width  * pixelScale,
-            height: rawBB.height * pixelScale,
-        };
+        const bb = getShapeBoundingBoxInDocSpace(shape);
         const cx = bb.x + bb.width  / 2;
         const cy = bb.y + bb.height / 2;
         const hw = bb.width / 2, hh = bb.height / 2;
@@ -179,14 +173,9 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         if (!shape) return false;
 
         const dpr = window.devicePixelRatio || 1;
-        const pixelScale = shape.pixelated ? shape.pixelSize : 1;
         const rawBB = shape.getBoundingBox();
-        const bb = {
-            x:      rawBB.x * pixelScale,
-            y:      rawBB.y * pixelScale,
-            width:  rawBB.width  * pixelScale,
-            height: rawBB.height * pixelScale,
-        };
+        const pixelScale = shape.pixelated ? shape.pixelSize : 1;
+        const bb = getShapeBoundingBoxInDocSpace(shape);
         const cx = bb.x + bb.width  / 2;
         const cy = bb.y + bb.height / 2;
         // handleDistDoc in canvas-pixel (doc) space
