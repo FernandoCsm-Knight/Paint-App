@@ -16,13 +16,13 @@ const GridSettings = ({ descriptionPrefix }: { descriptionPrefix: string }) => {
             <select
                 value={gridDisplayMode}
                 onChange={handleGridDisplayModeChange}
-                className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md text-[var(--pm-text-sm)]"
+                className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md"
             >
                 <option value="behind">Atras do desenho</option>
                 <option value="front">A frente do desenho</option>
                 <option value="none">Sem grid</option>
             </select>
-            <div className="ui-panel-muted-on-dark text-[var(--pm-text-xs)] mt-1">
+            <div className="ui-panel-muted-on-dark mt-1">
                 {gridDisplayMode === 'behind' && `Grid aparece atras ${descriptionPrefix}`}
                 {gridDisplayMode === 'front' && `Grid aparece a frente ${descriptionPrefix}`}
                 {gridDisplayMode === 'none' && 'Grid nao e exibido'}

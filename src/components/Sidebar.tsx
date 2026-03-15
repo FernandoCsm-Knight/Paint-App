@@ -36,7 +36,7 @@ const Sidebar = ({
             />
 
             <aside
-                className={`app-sidebar-shell theme-sidebar-shell fixed inset-y-0 left-0 z-40 flex h-screen w-[min(86vw,340px)] flex-col overflow-x-hidden border-r backdrop-blur-xl lg:relative lg:z-auto lg:translate-x-0 ${
+                className={`app-sidebar-shell theme-sidebar-shell fixed inset-y-0 left-0 z-40 flex h-dvh min-h-0 w-[min(86vw,340px)] flex-col overflow-hidden border-r backdrop-blur-xl transition-transform duration-300 lg:relative lg:z-auto lg:h-full lg:translate-x-0 ${
                     isMobileOpen ? 'translate-x-0' : '-translate-x-full'
                 } ${isCollapsed ? 'lg:w-24' : 'lg:w-80'}`}
             >
@@ -51,9 +51,13 @@ const Sidebar = ({
                         }`}
                     >
                         <div>
-                            <a href='/' className="theme-sidebar-kicker hover:underline text-xs font-semibold uppercase tracking-[0.35em]">
+                            <a
+                                href="/"
+                                className="theme-sidebar-kicker text-xs font-semibold uppercase tracking-[0.35em] hover:underline"
+                            >
                                 Graphic-Paint
                             </a>
+
                             <h1 className="theme-sidebar-title mt-2 text-2xl font-semibold">
                                 Graphics workspace
                             </h1>
@@ -95,7 +99,10 @@ const Sidebar = ({
                                 : 'hidden'
                         }`}
                     >
-                        <a href='/' className="theme-sidebar-brand-mark flex justify-center items-center h-15 w-15 text-center rounded-2xl text-lg font-bold uppercase">
+                        <a
+                            href="/"
+                            className="theme-sidebar-brand-mark flex h-15 w-15 items-center justify-center rounded-2xl text-center text-lg font-bold uppercase"
+                        >
                             G
                         </a>
 
@@ -110,7 +117,7 @@ const Sidebar = ({
                     </div>
                 </div>
 
-                <div className="scrollbar grow overflow-x-hidden overflow-y-auto px-4 py-5 lg:px-5">
+                <div className="scrollbar min-h-0 grow overflow-y-auto overflow-x-hidden px-4 py-5 lg:px-5">
                     <div className="space-y-3">
                         <div
                             className={`sidebar-panel-copy theme-sidebar-copy-muted flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] ${
@@ -163,6 +170,7 @@ const Sidebar = ({
                                                 <span className="theme-sidebar-title text-lg font-medium">
                                                     {module.name}
                                                 </span>
+
                                                 <span
                                                     className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${
                                                         module.status === 'available'
@@ -173,6 +181,7 @@ const Sidebar = ({
                                                     {module.status}
                                                 </span>
                                             </div>
+
                                             <p className="theme-sidebar-copy text-sm leading-6">
                                                 {module.description}
                                             </p>

@@ -21,7 +21,7 @@ const FloatingInfoBadge = ({
 }: FloatingInfoBadgeProps) => {
     return (
         <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-15 flex px-4 pb-6 ${alignMap[align]} ${className}`.trim()}>
-            <div className={`workspace-overlay-badge rounded-2xl px-4 py-3 text-[var(--pm-text-sm)] ${contentClassName}`.trim()}>
+            <div className={`workspace-overlay-badge rounded-2xl px-4 py-3 ${contentClassName}`.trim()}>
                 {children}
             </div>
         </div>

@@ -15,15 +15,15 @@ const GraphMenu = () => {
 
         return isDirected
             ? [
-                { value: 'bfs', label: 'BFS' },
-                { value: 'dfs', label: 'DFS' },
-                { value: 'topological', label: 'Topologica' },
-            ]
+                  { value: 'bfs', label: 'BFS' },
+                  { value: 'dfs', label: 'DFS' },
+                  { value: 'topological', label: 'Topologica' },
+              ]
             : [
-                { value: 'bfs', label: 'BFS' },
-                { value: 'dfs', label: 'DFS' },
-                { value: 'components', label: 'Componentes' },
-            ];
+                  { value: 'bfs', label: 'BFS' },
+                  { value: 'dfs', label: 'DFS' },
+                  { value: 'components', label: 'Componentes' },
+              ];
     }, [settings?.isDirected]);
 
     if (!graph || !settings) return null;
@@ -44,6 +44,7 @@ const GraphMenu = () => {
         clearExecution,
         exportImage,
     } = graph;
+
     const { isDirected, setIsDirected } = settings;
 
     const initialPosition = () => ({ x: 24, y: 24 });
@@ -51,35 +52,38 @@ const GraphMenu = () => {
     return (
         <header>
             <GlassCard initial={initialPosition} className="workspace-menu-shell">
-                <div className="relative flex w-150 flex-col gap-[var(--pm-gap)] p-[var(--pm-pad)]">
+                <div className="relative  flex flex-col gap-[var(--pm-gap)] p-[var(--pm-pad)]">
                     <div className="ui-menu-title-card flex min-w-0 flex-col gap-[var(--pm-gap)] rounded-xl px-[var(--pm-pad)] py-[var(--pm-btn-pad)] shadow-sm">
                         <div className="flex items-center justify-between gap-[var(--pm-gap)]">
                             <div>
-                                <h1 className="ui-menu-title-heading text-[var(--pm-text-sm)] font-bold uppercase tracking-[0.24em]">
+                                <h1 className="text-sm sm:text-base md:text-lg ui-menu-title-heading font-bold uppercase tracking-[0.24em]">
                                     Graph
                                 </h1>
-                                <p className="ui-panel-muted mt-1 text-[var(--pm-text-sm)]">
+                                <p className="ui-panel-muted mt-1 text-xs sm:text-sm">
                                     {vertices.length} vertice(s) e {edges.length} aresta(s)
                                 </p>
                             </div>
-                            <span className="ui-menu-title-badge rounded-full px-[var(--pm-btn-pad)] py-0.5 text-[var(--pm-text-xs)] font-semibold uppercase tracking-[0.22em]">
+
+                            <span className="ui-menu-title-badge rounded-full px-[var(--pm-btn-pad)] py-0.5 text-xs font-semibold uppercase tracking-[0.22em] sm:text-sm">
                                 {isDirected ? 'Digrafo' : 'Grafo'}
                             </span>
                         </div>
+
                         <div className="ui-menu-segmented flex items-center gap-1 rounded-lg p-1">
                             <button
                                 type="button"
                                 onClick={() => setIsDirected(false)}
-                                className={`ui-menu-segment flex-1 cursor-pointer rounded-md px-[var(--pm-btn-pad)] py-1.5 text-[var(--pm-text-sm)] font-semibold transition duration-200 ${
+                                className={`ui-menu-segment flex-1 rounded-md px-[var(--pm-btn-pad)] py-1.5 text-xs font-semibold transition duration-200 sm:text-sm ${
                                     !isDirected ? 'ui-menu-segment-active shadow-sm' : ''
                                 }`}
                             >
                                 Grafo
                             </button>
+
                             <button
                                 type="button"
                                 onClick={() => setIsDirected(true)}
-                                className={`ui-menu-segment flex-1 cursor-pointer rounded-md px-[var(--pm-btn-pad)] py-1.5 text-[var(--pm-text-sm)] font-semibold transition duration-200 ${
+                                className={`ui-menu-segment flex-1 rounded-md px-[var(--pm-btn-pad)] py-1.5 text-xs font-semibold transition duration-200 sm:text-sm ${
                                     isDirected ? 'ui-menu-segment-active shadow-sm' : ''
                                 }`}
                             >
@@ -87,28 +91,43 @@ const GraphMenu = () => {
                             </button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-[var(--pm-gap)] md:grid-cols-4">
+
+                    <div className="grid grid-cols-2 gap-[var(--pm-gap)] md:grid-cols-4">
                         <WorkspaceToolButton
                             onClick={() => setActiveTool('vertex')}
                             stayActive
                             active={activeTool === 'vertex'}
                             ariaLabel="Ferramenta de vertice"
                             title="Ferramenta de vertice"
-                            className="flex min-h-[3.25rem] w-full items-center justify-center gap-2 px-3"
+                            className="flex items-center justify-center gap-2 px-3"
                         >
                             <LuCircleDot className="workspace-icon" />
-                            <span className="text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.18em]">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm">
                                 Vertice
                             </span>
                         </WorkspaceToolButton>
-                        <label className="ui-input col-start-2 col-end-4 flex min-h-[3.25rem] w-full items-center gap-2 rounded-lg px-3 py-2">
-                            <span className="ui-panel-muted shrink-0 text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.16em]">
+
+                        <WorkspaceToolButton
+                            onClick={clearGraph}
+                            ariaLabel="Limpar grafo"
+                            title="Limpar grafo"
+                            className="flex items-center justify-center gap-2 px-3"
+                        >
+                            <LuTrash2 className="workspace-icon" />
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm">
+                                Limpar
+                            </span>
+                        </WorkspaceToolButton>
+
+                        <label className="ui-input col-span-2 flex w-full items-center gap-2 rounded-lg px-3 py-2">
+                            <span className="ui-panel-muted text-xs font-semibold uppercase tracking-[0.16em] sm:text-sm">
                                 Algoritmo
                             </span>
+
                             <select
                                 value={algorithm}
                                 onChange={(event) => setAlgorithm(event.target.value as GraphAlgorithm)}
-                                className="w-full cursor-pointer bg-transparent text-[var(--pm-text-sm)] font-medium outline-none"
+                                className="w-full bg-transparent text-xs font-medium outline-none sm:text-sm"
                             >
                                 {algorithmOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -117,51 +136,50 @@ const GraphMenu = () => {
                                 ))}
                             </select>
                         </label>
+
                         <WorkspaceToolButton
-                            onClick={() => { if (isPlayerVisible) { setIsPlayerVisible(false); clearExecution(); } else { runAlgorithm(); } }}
+                            onClick={() => {
+                                if (isPlayerVisible) {
+                                    setIsPlayerVisible(false);
+                                    clearExecution();
+                                } else {
+                                    runAlgorithm();
+                                }
+                            }}
                             stayActive
                             active={isPlayerVisible}
-                            className="flex min-h-[3.25rem] w-full items-center justify-center gap-2 px-3"
                             ariaLabel="Executar algoritmo"
                             title="Executar algoritmo"
+                            className="flex items-center justify-center gap-2 px-3"
                         >
                             <LuPlay className="workspace-icon" />
-                            <span className="text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.18em]">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm">
                                 Rodar
                             </span>
                         </WorkspaceToolButton>
-                        <WorkspaceToolButton
-                            onClick={clearGraph}
-                            className="flex min-h-[3.25rem] w-full items-center justify-center gap-2 px-3"
-                            ariaLabel="Limpar grafo"
-                            title="Limpar grafo"
-                        >
-                            <LuTrash2 className="workspace-icon" />
-                            <span className="text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.18em]">
-                                Limpar
-                            </span>
-                        </WorkspaceToolButton>
+
                         <WorkspaceToolButton
                             onClick={() => setIsStatusCardVisible(!isStatusCardVisible)}
                             stayActive
                             active={isStatusCardVisible}
-                            className="flex min-h-[3.25rem] w-full items-center justify-center gap-2 px-3"
                             ariaLabel={isStatusCardVisible ? 'Ocultar status' : 'Mostrar status'}
                             title={isStatusCardVisible ? 'Ocultar status' : 'Mostrar status'}
+                            className="flex items-center justify-center gap-2 px-3"
                         >
                             <LuPanelRight className="workspace-icon" />
-                            <span className="text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.18em]">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm">
                                 Status
                             </span>
                         </WorkspaceToolButton>
+
                         <WorkspaceToolButton
                             onClick={exportImage}
-                            className="col-start-3 col-end-5 flex min-h-[3.25rem] w-full items-center justify-center gap-2 px-3"
                             ariaLabel="Exportar imagem"
                             title="Exportar imagem"
+                            className="col-span-2 flex items-center justify-center gap-2 px-3"
                         >
                             <LuDownload className="workspace-icon" />
-                            <span className="text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.18em]">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm">
                                 Exportar
                             </span>
                         </WorkspaceToolButton>

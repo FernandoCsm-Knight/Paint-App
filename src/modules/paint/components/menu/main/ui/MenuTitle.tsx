@@ -7,8 +7,8 @@ const MenuTitle = () => {
     return (
         <div className="ui-menu-title-card flex min-w-0 flex-col gap-[var(--pm-gap)] rounded-xl px-[var(--pm-pad)] py-[var(--pm-btn-pad)] shadow-sm">
             <div className="flex items-center justify-between gap-[var(--pm-gap)]">
-                <h1 className="ui-menu-title-heading text-[var(--pm-text-sm)] font-bold uppercase tracking-[0.24em]">Paint</h1>
-                <span className="ui-menu-title-badge rounded-full px-[var(--pm-btn-pad)] py-0.5 text-[var(--pm-text-xs)] font-semibold uppercase tracking-[0.22em]">
+                <h1 className="text-sm sm:text-base md:text-lg ui-menu-title-heading font-bold uppercase tracking-[0.24em]">Paint</h1>
+                <span className="ui-menu-title-badge text-xs sm:text-sm md:text-base rounded-full px-[var(--pm-btn-pad)] py-0.5 font-semibold uppercase tracking-[0.22em]">
                     {pixelated ? "Pixel" : "Livre"}
                 </span>
             </div>
@@ -16,7 +16,7 @@ const MenuTitle = () => {
                 <button
                     type="button"
                     onClick={() => setPixelated(false)}
-                    className={`ui-menu-segment flex-1 cursor-pointer rounded-md px-[var(--pm-btn-pad)] py-1.5 text-[var(--pm-text-xs)] font-semibold transition duration-200 ${
+                    className={`text-xs sm:text-sm md:text-base ui-menu-segment flex-1 cursor-pointer rounded-md px-[var(--pm-btn-pad)] py-1.5 font-semibold transition duration-200 ${
                         !pixelated
                             ? "ui-menu-segment-active shadow-sm"
                             : ""
@@ -27,7 +27,7 @@ const MenuTitle = () => {
                 <button
                     type="button"
                     onClick={() => setPixelated(true)}
-                    className={`ui-menu-segment flex-1 cursor-pointer rounded-md px-[var(--pm-btn-pad)] py-1.5 text-[var(--pm-text-xs)] font-semibold transition duration-200 ${
+                    className={`text-xs sm:text-sm md:text-base ui-menu-segment flex-1 cursor-pointer rounded-md px-[var(--pm-btn-pad)] py-1.5 font-semibold transition duration-200 ${
                         pixelated
                             ? "ui-menu-segment-active shadow-sm"
                             : ""

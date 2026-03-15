@@ -72,16 +72,16 @@ const GraphPlayerCard = () => {
         <GlassCard initial={initialPosition}>
             <div className="flex flex-col gap-3 p-4 min-w-64">
                 <div className="flex items-center justify-between">
-                    <h3 className="ui-panel-title-on-dark text-[var(--pm-text-sm)] font-semibold uppercase tracking-[0.22em]">
+                    <h3 className="ui-panel-title-on-dark font-semibold uppercase tracking-[0.22em]">
                         Player
                     </h3>
-                    <span className="ui-menu-title-badge rounded-full px-2 py-0.5 text-[var(--pm-text-xs)] font-semibold tabular-nums">
+                    <span className="ui-menu-title-badge rounded-full px-2 py-0.5 font-semibold tabular-nums">
                         {stepCount > 0 ? `${currentStep + 1} / ${stepCount}` : '—'}
                     </span>
                 </div>
 
                 {lastRun && (
-                    <p className="ui-panel-muted-on-dark text-[var(--pm-text-xs)] leading-5">
+                    <p className="ui-panel-muted-on-dark leading-5">
                         {lastRun.message}
                     </p>
                 )}
@@ -137,10 +137,10 @@ const GraphPlayerCard = () => {
                 {/* Interval control */}
                 <label className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
-                        <span className="ui-panel-muted-on-dark text-[var(--pm-text-xs)] font-medium uppercase tracking-[0.14em]">
+                        <span className="ui-panel-muted-on-dark font-medium uppercase tracking-[0.14em]">
                             Intervalo
                         </span>
-                        <span className="ui-value-chip rounded-md px-2 py-0.5 text-[var(--pm-text-xs)] tabular-nums">
+                        <span className="ui-value-chip rounded-md px-2 py-0.5 tabular-nums">
                             {intervalMs}ms
                         </span>
                     </div>

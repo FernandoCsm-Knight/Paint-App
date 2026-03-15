@@ -48,7 +48,7 @@ const PixelatedSettings = () => {
                         onChange={handlePixelSizeChange}
                         className="slider flex-1 h-2 rounded-lg appearance-none cursor-pointer"
                     />
-                    <span className="ui-value-chip text-[var(--pm-text-sm)] font-mono px-[var(--pm-btn-pad)] py-0.5 rounded min-w-[3rem] text-center">
+                    <span className="ui-value-chip font-mono px-[var(--pm-btn-pad)] py-0.5 rounded min-w-[3rem] text-center">
                         {pixelSize}px
                     </span>
                 </div>
@@ -61,12 +61,12 @@ const PixelatedSettings = () => {
                 <select
                     value={lineAlgorithm}
                     onChange={handleLineAlgorithmChange}
-                    className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md text-[var(--pm-text-sm)]"
+                    className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md"
                 >
                     <option value="bresenham">Bresenham</option>
                     <option value="dda">DDA (Digital Differential Analyzer)</option>
                 </select>
-                <div className="ui-panel-muted-on-dark text-[var(--pm-text-xs)] mt-1">
+                <div className="ui-panel-muted-on-dark mt-1">
                     {lineAlgorithm === 'bresenham' 
                         ? 'Algoritmo mais preciso e eficiente para rasterização'
                         : 'Algoritmo simples baseado em interpolação linear'
@@ -80,13 +80,13 @@ const PixelatedSettings = () => {
                 <select
                     value={clipAlgorithm}
                     onChange={handleClipAlgorithmChange}
-                    className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md text-[var(--pm-text-sm)]"
+                    className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md"
                 >
                     <option value="cohen-sutherland">Cohen-Sutherland (reta)</option>
                     <option value="liang-barsky">Liang-Barsky (reta)</option>
                     <option value="sutherland-hodgman">Sutherland-Hodgman (polígono)</option>
                 </select>
-                <div className="ui-panel-muted-on-dark text-[var(--pm-text-xs)] mt-1">
+                <div className="ui-panel-muted-on-dark mt-1">
                     {clipDescriptions[clipAlgorithm]}
                 </div>
             </li>
