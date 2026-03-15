@@ -187,6 +187,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
     const resizeHandleRef = useRef<ResizeHandle | null>(null);
     const resizeAnchorRef = useRef<Point | null>(null);
     const resizeBoundsRef = useRef<BoundingBox | null>(null);
+    const pendingRenderFrameRef = useRef<number | null>(null);
 
     const setCanvasCursor = useCallback((cursor: string) => {
         const canvas = canvasRef.current;
@@ -194,8 +195,16 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         canvas.style.cursor = cursor;
     }, [canvasRef]);
 
+    const cancelScheduledPendingRender = useCallback(() => {
+        if (pendingRenderFrameRef.current !== null) {
+            cancelAnimationFrame(pendingRenderFrameRef.current);
+            pendingRenderFrameRef.current = null;
+        }
+    }, []);
+
     /** Resets all mutable drag/pending refs to their idle state. */
     const resetPendingState = useCallback(() => {
+        cancelScheduledPendingRender();
         pendingShapeRef.current = null;
         pendingMode.current = null;
         dragStart.current = null;
@@ -203,7 +212,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         resizeAnchorRef.current = null;
         resizeBoundsRef.current = null;
         setCanvasCursor("");
-    }, [setCanvasCursor]);
+    }, [cancelScheduledPendingRender, setCanvasCursor]);
 
     const drawBoundingBoxOverlay = useCallback((shape: Shape) => {
         const overlay = replacementContextRef.current;
@@ -265,6 +274,30 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         overlay.restore();
     }, [replacementContextRef, zoom, viewOffset]);
 
+    const renderPendingShapeNow = useCallback(() => {
+        const shape = pendingShapeRef.current;
+        const ctx = contextRef.current;
+        if (!shape || !ctx) return;
+
+        redrawFromScene(ctx);
+        shape.draw(ctx);
+        renderViewport();
+        drawBoundingBoxOverlay(shape);
+    }, [contextRef, drawBoundingBoxOverlay, redrawFromScene, renderViewport]);
+
+    const schedulePendingRender = useCallback(() => {
+        if (pendingRenderFrameRef.current !== null) return;
+        pendingRenderFrameRef.current = requestAnimationFrame(() => {
+            pendingRenderFrameRef.current = null;
+            renderPendingShapeNow();
+        });
+    }, [renderPendingShapeNow]);
+
+    const flushPendingRender = useCallback(() => {
+        cancelScheduledPendingRender();
+        renderPendingShapeNow();
+    }, [cancelScheduledPendingRender, renderPendingShapeNow]);
+
     const getPointerDocPoint = useCallback((shape: Shape, docPoint: Point, canvasPoint?: Point): Point => (
         canvasPoint ?? (shape.pixelated
             ? { x: docPoint.x * shape.pixelSize, y: docPoint.y * shape.pixelSize }
@@ -308,9 +341,8 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
     const enterPending = useCallback((shape: Shape) => {
         resetPendingState();
         pendingShapeRef.current = shape;
-        renderViewport();
-        drawBoundingBoxOverlay(shape);
-    }, [drawBoundingBoxOverlay, renderViewport, resetPendingState]);
+        flushPendingRender();
+    }, [flushPendingRender, resetPendingState]);
 
     /** Commit the pending shape to the scene and clear the overlay. */
     const confirmPending = useCallback(() => {
@@ -467,12 +499,9 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
             setCanvasCursor(getResizeCursor(handle, shape.rotation));
         }
 
-        redrawFromScene(ctx);
-        shape.draw(ctx);
-        renderViewport();
-        drawBoundingBoxOverlay(shape);
+        schedulePendingRender();
         return true;
-    }, [contextRef, drawBoundingBoxOverlay, getHoverTarget, getPointerDocPoint, redrawFromScene, renderViewport, setCanvasCursor]);
+    }, [contextRef, getHoverTarget, getPointerDocPoint, schedulePendingRender, setCanvasCursor]);
 
     /** Handle pointer-up while in pending mode. Returns true if handled. */
     const onPointerUp = useCallback((): boolean => {
@@ -480,6 +509,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
             const shape = pendingShapeRef.current;
             const activeMode = pendingMode.current;
             const activeHandle = resizeHandleRef.current;
+            flushPendingRender();
             pendingMode.current = null;
             dragStart.current = null;
             resizeHandleRef.current = null;
@@ -495,7 +525,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
             return true;
         }
         return false;
-    }, [setCanvasCursor]);
+    }, [flushPendingRender, setCanvasCursor]);
 
     const hasPending = useCallback(() => pendingShapeRef.current !== null, []);
 
