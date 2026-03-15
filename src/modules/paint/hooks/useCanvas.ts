@@ -25,7 +25,7 @@ const useCanvas = () => {
 
     const { replacementCanvasRef, replacementContextRef } = useContext(ReplacementContext)!;
 
-    const { pushShape, undoScene, redoScene, redrawFromScene, takeSnapshotShape } = useScene();
+    const { sceneRef, pushShape, undoScene, redoScene, redrawFromScene, takeSnapshotShape } = useScene();
 
     const { renderViewport, getViewportSize, clampViewOffset, getMinAllowedZoom } = useViewport(documentCanvasRef);
 
@@ -49,6 +49,7 @@ const useCanvas = () => {
             getViewportSize,
             clampViewOffset,
             getMinAllowedZoom,
+            sceneRef,
             pushShape,
             redrawFromScene,
             takeSnapshotShape,

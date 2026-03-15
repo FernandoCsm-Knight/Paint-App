@@ -69,6 +69,13 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
     const pendingMode = useRef<PendingMode>(null);
     const dragStart = useRef<Point | null>(null);
 
+    /** Resets all mutable drag/pending refs to their idle state. */
+    const resetPendingState = () => {
+        pendingShapeRef.current = null;
+        pendingMode.current = null;
+        dragStart.current = null;
+    };
+
     const drawBoundingBoxOverlay = useCallback((shape: Shape) => {
         const overlay = replacementContextRef.current;
         if (!overlay) return;
@@ -80,8 +87,17 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         const handleRadiusDoc = ROTATION_HANDLE_RADIUS_PX / scale;
         const cornerSize = 6 / scale;
 
-        const bb = shape.getBoundingBox();
-        const { x: cx, y: cy } = shape.getCenter();
+        // Pixelated shapes store coordinates in grid-units; convert to canvas pixels.
+        const pixelScale = shape.pixelated ? shape.pixelSize : 1;
+        const rawBB = shape.getBoundingBox();
+        const bb = {
+            x:      rawBB.x * pixelScale,
+            y:      rawBB.y * pixelScale,
+            width:  rawBB.width  * pixelScale,
+            height: rawBB.height * pixelScale,
+        };
+        const cx = bb.x + bb.width  / 2;
+        const cy = bb.y + bb.height / 2;
         const hw = bb.width / 2, hh = bb.height / 2;
 
         overlay.save();
@@ -129,9 +145,8 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
 
     /** Enter pending mode: store the shape and draw its bounding box overlay. */
     const enterPending = useCallback((shape: Shape) => {
+        resetPendingState();
         pendingShapeRef.current = shape;
-        pendingMode.current = null;
-        dragStart.current = null;
         renderViewport();
         drawBoundingBoxOverlay(shape);
     }, [renderViewport, drawBoundingBoxOverlay]);
@@ -140,9 +155,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
     const confirmPending = useCallback(() => {
         const shape = pendingShapeRef.current;
         if (!shape) return;
-        pendingShapeRef.current = null;
-        pendingMode.current = null;
-        dragStart.current = null;
+        resetPendingState();
         pushShape(shape);
         renderViewport();
     }, [pushShape, renderViewport]);
@@ -150,9 +163,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
     /** Discard the pending shape and restore the canvas to the committed scene. */
     const cancelPending = useCallback(() => {
         const ctx = contextRef.current;
-        pendingShapeRef.current = null;
-        pendingMode.current = null;
-        dragStart.current = null;
+        resetPendingState();
         if (ctx) {
             redrawFromScene(ctx);
             renderViewport();
@@ -167,15 +178,25 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         const shape = pendingShapeRef.current;
         if (!shape) return false;
 
-        const bb = shape.getBoundingBox();
-        const { x: cx, y: cy } = shape.getCenter();
         const dpr = window.devicePixelRatio || 1;
+        const pixelScale = shape.pixelated ? shape.pixelSize : 1;
+        const rawBB = shape.getBoundingBox();
+        const bb = {
+            x:      rawBB.x * pixelScale,
+            y:      rawBB.y * pixelScale,
+            width:  rawBB.width  * pixelScale,
+            height: rawBB.height * pixelScale,
+        };
+        const cx = bb.x + bb.width  / 2;
+        const cy = bb.y + bb.height / 2;
+        // handleDistDoc in canvas-pixel (doc) space
         const handleDistDoc = ROTATION_HANDLE_DIST_PX / (zoom * dpr);
 
-        // Convert to screen px for distance check (zoom-independent hit area)
+        // Convert canvas-pixel (doc-space) coords → screen pixels.
+        // docPoint arrives in grid units when pixelated, so multiply by pixelScale first.
         const toScreen = (p: Point) => ({
-            x: (p.x * zoom + viewOffset.x) * dpr,
-            y: (p.y * zoom + viewOffset.y) * dpr,
+            x: (p.x * pixelScale * zoom + viewOffset.x) * dpr,
+            y: (p.y * pixelScale * zoom + viewOffset.y) * dpr,
         });
 
         const handleWorld = getRotationHandleWorld(bb, shape.rotation, cx, cy, handleDistDoc);
@@ -189,7 +210,10 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
             return true;
         }
 
-        if (isInsideRotatedBBox(docPoint, bb, shape.rotation, cx, cy)) {
+        // isInsideRotatedBBox works in grid units (same space as docPoint)
+        const gridCx = rawBB.x + rawBB.width  / 2;
+        const gridCy = rawBB.y + rawBB.height / 2;
+        if (isInsideRotatedBBox(docPoint, rawBB, shape.rotation, gridCx, gridCy)) {
             pendingMode.current = 'move';
             dragStart.current = docPoint;
             return true;
@@ -237,7 +261,7 @@ const usePendingPlacement = ({ renderViewport, redrawFromScene, pushShape }: Pen
         return false;
     }, []);
 
-    const hasPending = useCallback(() => pendingShapeRef.current !== null, []);
+    const hasPending = () => pendingShapeRef.current !== null;
 
     return {
         hasPending,

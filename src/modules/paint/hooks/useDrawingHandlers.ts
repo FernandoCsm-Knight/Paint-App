@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef } from "react";
+import React, { useCallback, useContext, useRef } from "react";
 import type { PointerEvent } from "react";
 import { PaintContext } from "../context/PaintContext";
 import { SettingsContext } from "../context/SettingsContext";
@@ -20,6 +20,7 @@ type DrawingHandlersInput = {
     getViewportSize: () => { width: number; height: number };
     clampViewOffset: (next: Point, viewportWidth?: number, viewportHeight?: number, canvasWidth?: number, canvasHeight?: number, zoomLevel?: number) => Point;
     getMinAllowedZoom: (viewportWidth?: number, viewportHeight?: number, canvasWidth?: number, canvasHeight?: number) => number;
+    sceneRef: React.RefObject<SceneItem[]>;
     pushShape: (shape: SceneItem) => void;
     redrawFromScene: (ctx: CanvasRenderingContext2D) => void;
     takeSnapshotShape: (ctx: CanvasRenderingContext2D) => SnapshotShape;
@@ -30,6 +31,7 @@ const useDrawingHandlers = ({
     getViewportSize,
     clampViewOffset,
     getMinAllowedZoom,
+    sceneRef,
     pushShape,
     redrawFromScene,
     takeSnapshotShape,
@@ -50,7 +52,15 @@ const useDrawingHandlers = ({
 
     const { pixelSize, lineAlgorithm } = useContext(SettingsContext)!;
 
-    const { startSelection, updateSelection, stopSelection } = useSelection();
+    const {
+        startSelection, updateSelection, stopSelection,
+        hasFloating,
+        onPointerDown: selectionDown,
+        onPointerMove: selectionMove,
+        onPointerUp:   selectionUp,
+        cancelSelection,
+        commitSelection,
+    } = useSelection({ sceneRef, pushShape, redrawFromScene, takeSnapshotShape });
     const { onPointerDown: panDown, onPointerMove: panMove, onPointerUp: panUp, handleWheel } = usePanZoom({
         getViewportSize,
         clampViewOffset,
@@ -78,6 +88,30 @@ const useDrawingHandlers = ({
     const rafId = useRef<number | null>(null);
     const pendingPoint = useRef<Point | null>(null);
 
+    /** Throttles shape preview redraws to one per animation frame. */
+    const scheduleShapePreview = useCallback((point: Point, ctx: CanvasRenderingContext2D) => {
+        pendingPoint.current = point;
+        if (rafId.current !== null) return;
+        rafId.current = requestAnimationFrame(() => {
+            rafId.current = null;
+            if (!pendingPoint.current) return;
+            redrawFromScene(ctx);
+            const shape = generator({
+                start: start.current,
+                end: pendingPoint.current,
+                color: currentColor.current,
+                thickness: thickness.current,
+                kind: selectedShape,
+                pixelated,
+                pixelSize,
+                lineAlgorithm,
+            });
+            currentShape.current = shape;
+            shape.draw(ctx);
+            renderViewport();
+        });
+    }, [redrawFromScene, currentColor, thickness, selectedShape, pixelated, pixelSize, lineAlgorithm, renderViewport]);
+
     const getCanvasPoint = useCallback((e: PointerEvent<HTMLCanvasElement>): Point | null => {
         const canvas = canvasRef.current;
         if (!canvas) return null;
@@ -102,51 +136,54 @@ const useDrawingHandlers = ({
         const { x, y } = point;
         const mappedPoint = pixelated ? map({ x, y }, pixelSize) : { x, y };
 
+        // Floating selection takes top priority (drag or outside-click to commit).
+        if (hasFloating()) {
+            selectionDown(mappedPoint);
+            return;
+        }
+
         // While a shape is pending confirmation, all clicks are handled by the
         // pending placement logic (move drag, rotate drag, or confirm on outside click).
         if (pending.hasPending()) {
             pending.onPointerDown(mappedPoint);
-            return;
-        }
-
-        if (selectedShape === 'polygon') {
+        } else if (selectedShape === 'polygon') {
             polygon.onPointerDown(mappedPoint);
-            return;
-        }
-
-        canvas.setPointerCapture(e.pointerId);
-        isDrawing.current = true;
-        start.current = mappedPoint;
-
-        if (isSelectionActive) {
-            startSelection({ x, y });
-        } else if (isFillActive) {
-            const fillShape = new FillShape({
-                point: start.current,
-                strokeStyle: currentColor.current,
-                isEraser: isEraserActive,
-                pixelated,
-                pixelSize,
-            });
-            fillShape.draw(ctx);
-            currentShape.current = fillShape;
-            renderViewport();
-        } else if (selectedShape === 'freeform') {
-            const form = new FreeForm([start.current], {
-                strokeStyle: currentColor.current,
-                lineWidth: thickness.current,
-                isEraser: isEraserActive,
-                filled: isFillActive,
-                pixelated,
-                pixelSize,
-                lineAlgorithm,
-            });
-            form.draw(ctx);
-            currentShape.current = form;
-            renderViewport();
+        } else {
+            canvas.setPointerCapture(e.pointerId);
+            isDrawing.current = true;
+            start.current = mappedPoint;
+    
+            if (isSelectionActive) {
+                startSelection({ x, y });
+            } else if (isFillActive) {
+                const fillShape = new FillShape({
+                    point: start.current,
+                    strokeStyle: currentColor.current,
+                    isEraser: isEraserActive,
+                    pixelated,
+                    pixelSize,
+                });
+                fillShape.draw(ctx);
+                currentShape.current = fillShape;
+                renderViewport();
+            } else if (selectedShape === 'freeform') {
+                const form = new FreeForm([start.current], {
+                    strokeStyle: currentColor.current,
+                    lineWidth: thickness.current,
+                    isEraser: isEraserActive,
+                    filled: isFillActive,
+                    pixelated,
+                    pixelSize,
+                    lineAlgorithm,
+                });
+                form.draw(ctx);
+                currentShape.current = form;
+                renderViewport();
+            }
         }
     }, [
         panDown, canvasRef, contextRef, getCanvasPoint, pixelated, pixelSize,
+        hasFloating, selectionDown,
         isSelectionActive, startSelection, isFillActive, currentColor, isEraserActive,
         selectedShape, thickness, lineAlgorithm, renderViewport, polygon,
     ]);
@@ -160,63 +197,36 @@ const useDrawingHandlers = ({
         const { x, y } = currentPoint;
         const point = pixelated ? map({ x, y }, pixelSize) : { x, y };
 
+        // Floating selection takes top priority
+        if (hasFloating()) {
+            selectionMove(point);
+            return;
+        }
+
         // Pending placement takes priority over all tool-specific move handling
         if (pending.hasPending()) {
             pending.onPointerMove(point);
-            return;
-        }
-
-        if (selectedShape === 'polygon') {
+        } else if (selectedShape === 'polygon') {
             polygon.onPointerMove(point);
-            return;
-        }
-
-        if (!isDrawing.current) return;
-
-        const ctx = contextRef.current;
-        if (!ctx) return;
-
-        if (isSelectionActive) {
-            updateSelection({ x, y });
-            return;
-        }
-
-        if (selectedShape === 'freeform') {
-            if (currentShape.current instanceof FreeForm) {
-                currentShape.current.lineTo(point, ctx);
-                renderViewport();
+        } else if (isDrawing.current && contextRef.current) {
+            const ctx = contextRef.current;
+    
+            if (isSelectionActive) {
+                updateSelection({ x, y });
+            } else if (selectedShape === 'freeform') {
+                if (currentShape.current instanceof FreeForm) {
+                    currentShape.current.lineTo(point, ctx);
+                    renderViewport();
+                }
+            } else {
+                scheduleShapePreview(point, ctx);
             }
-            return;
-        }
-
-        pendingPoint.current = point;
-        if (rafId.current === null) {
-            rafId.current = requestAnimationFrame(() => {
-                rafId.current = null;
-                if (!pendingPoint.current) return;
-
-                redrawFromScene(ctx);
-
-                const shape = generator({
-                    start: start.current,
-                    end: pendingPoint.current,
-                    color: currentColor.current,
-                    thickness: thickness.current,
-                    kind: selectedShape,
-                    pixelated,
-                    pixelSize,
-                    lineAlgorithm,
-                });
-
-                currentShape.current = shape;
-                shape.draw(ctx);
-                renderViewport();
-            });
         }
     }, [
         panMove, contextRef, getCanvasPoint, pixelated, pixelSize,
-        isSelectionActive, updateSelection, selectedShape, redrawFromScene,
-        currentColor, thickness, lineAlgorithm, renderViewport, polygon,
+        hasFloating, selectionMove,
+        isSelectionActive, updateSelection, selectedShape,
+        scheduleShapePreview, renderViewport, polygon,
     ]);
 
     const handlePointerUp = useCallback((e?: PointerEvent<HTMLCanvasElement>) => {
@@ -225,16 +235,14 @@ const useDrawingHandlers = ({
         // End an active move/rotate drag on a pending shape (shape stays pending).
         // Must be checked before the polygon guard so that releasing a drag on a
         // pending FreePolygon correctly ends the drag.
-        if (pending.onPointerUp()) {
+        if (selectionUp()) {
             if (e?.currentTarget.hasPointerCapture(e.pointerId)) {
                 e.currentTarget.releasePointerCapture(e.pointerId);
             }
             return;
         }
 
-        if (selectedShape === 'polygon') return;
-
-        if (isDrawing.current) {
+        if (!pending.onPointerUp() && selectedShape !== 'polygon' && isDrawing.current) {
             if (rafId.current !== null) {
                 cancelAnimationFrame(rafId.current);
                 rafId.current = null;
@@ -266,7 +274,7 @@ const useDrawingHandlers = ({
         if (e?.currentTarget.hasPointerCapture(e.pointerId)) {
             e.currentTarget.releasePointerCapture(e.pointerId);
         }
-    }, [panUp, selectedShape, contextRef, isSelectionActive, renderViewport, pushShape, takeSnapshotShape, stopSelection, pending]);
+    }, [panUp, selectionUp, selectedShape, contextRef, isSelectionActive, renderViewport, pushShape, takeSnapshotShape, stopSelection, pending]);
 
     return {
         handlePointerDown,
@@ -276,6 +284,8 @@ const useDrawingHandlers = ({
         enterPendingShape: pending.enterPending,
         confirmPendingShape: pending.confirmPending,
         hasPendingShape: pending.hasPending,
+        cancelSelection,
+        commitSelection,
     };
 };
 

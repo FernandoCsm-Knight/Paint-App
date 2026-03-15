@@ -34,6 +34,12 @@ const usePanZoom = ({ getViewportSize, clampViewOffset, getMinAllowedZoom }: Pan
         originOffset: Point;
     } | null>(null);
 
+    /**
+     * Grows the document canvas when panning would reveal empty space.
+     * Side-effect: schedules a `setCanvasSize` state update (async re-render).
+     * Return value: the synchronously-known next dimensions, used immediately
+     * by the caller to clamp the new view offset in the same frame.
+     */
     const maybeGrowCanvas = useCallback((candidateOffset: Point) => {
         const { width: vpW, height: vpH } = getViewportSize();
         if (vpW <= 0 || vpH <= 0) return { width: canvasSize.width, height: canvasSize.height };
@@ -71,6 +77,7 @@ const usePanZoom = ({ getViewportSize, clampViewOffset, getMinAllowedZoom }: Pan
             return true;
         }
 
+        // Safety: clear a stale session that was never properly ended
         if (panSession.current?.pointerId === e.pointerId) {
             panSession.current = null;
             setCanvasPanning(false);
@@ -82,11 +89,11 @@ const usePanZoom = ({ getViewportSize, clampViewOffset, getMinAllowedZoom }: Pan
     const onPointerMove = useCallback((e: PointerEvent<HTMLCanvasElement>): boolean => {
         if (panSession.current?.pointerId !== e.pointerId) return false;
 
-        const ok = panSession.current.mode === "tool"
+        const isPanButtonHeld = panSession.current.mode === "tool"
             ? isPanModeActive && (e.buttons & 1) === 1
             : (e.buttons & 4) === 4;
 
-        if (!ok) {
+        if (!isPanButtonHeld) {
             panSession.current = null;
             setCanvasPanning(false);
             return false;

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { SettingsContext, type LineAlgorithm } from "../../../context/SettingsContext";
+import { SettingsContext, type ClipAlgorithm, type LineAlgorithm } from "../../../context/SettingsContext";
 import GridSettings from "./GridSettings";
 import Settings from "./ui/Settings";
 
@@ -8,7 +8,9 @@ const PixelatedSettings = () => {
         pixelSize,
         setPixelSize,
         lineAlgorithm,
-        setLineAlgorithm
+        setLineAlgorithm,
+        clipAlgorithm,
+        setClipAlgorithm,
     } = useContext(SettingsContext)!;
     
     const handlePixelSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,6 +20,16 @@ const PixelatedSettings = () => {
 
     const handleLineAlgorithmChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setLineAlgorithm(event.target.value as LineAlgorithm);
+    };
+
+    const handleClipAlgorithmChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setClipAlgorithm(event.target.value as ClipAlgorithm);
+    };
+
+    const clipDescriptions: Record<ClipAlgorithm, string> = {
+        'cohen-sutherland': 'Recorte de retas por testes de região (outcodes)',
+        'liang-barsky':     'Recorte de retas por interseção paramétrica',
+        'sutherland-hodgman': 'Recorte de polígonos contra janela retangular',
     };
 
     return (
@@ -61,6 +73,24 @@ const PixelatedSettings = () => {
                     }
                 </div>
             </li>
+            <li>
+                <label className="block mb-[var(--pm-gap)]">
+                    Algoritmo de Recorte (Seleção)
+                </label>
+                <select
+                    value={clipAlgorithm}
+                    onChange={handleClipAlgorithmChange}
+                    className="ui-input w-full p-[var(--pm-btn-pad)] rounded-md text-[var(--pm-text-sm)]"
+                >
+                    <option value="cohen-sutherland">Cohen-Sutherland (reta)</option>
+                    <option value="liang-barsky">Liang-Barsky (reta)</option>
+                    <option value="sutherland-hodgman">Sutherland-Hodgman (polígono)</option>
+                </select>
+                <div className="ui-panel-muted-on-dark text-[var(--pm-text-xs)] mt-1">
+                    {clipDescriptions[clipAlgorithm]}
+                </div>
+            </li>
+
             <GridSettings descriptionPrefix="dos pixels desenhados" />
         </Settings>
     );
