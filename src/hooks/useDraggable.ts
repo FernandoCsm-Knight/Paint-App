@@ -36,9 +36,10 @@ export const useDraggable = (options: DraggableOptions = {}): UseDraggableReturn
         onScroll
     } = options;
 
-    const initialPosition = initial ? initial() : { x: 0, y: 20 };
-    const [position, setPosition] = useState<Point>(initialPosition);
-    const positionRef = useRef<Point>(initialPosition);
+    const initialRef = useRef(initial);
+    const hasInitialPosition = !!initialRef.current;
+    const [position, setPosition] = useState<Point>(() => initialRef.current ? initialRef.current() : { x: 0, y: 20 });
+    const positionRef = useRef<Point>(initialRef.current ? initialRef.current() : { x: 0, y: 20 });
     const targetRef = useRef<HTMLDivElement | null>(null);
     const dragOffsetRef = useRef({ dx: 0, dy: 0 });
 
@@ -87,7 +88,7 @@ export const useDraggable = (options: DraggableOptions = {}): UseDraggableReturn
     }, [clamp, getBoundsRect, referenceFrame]);
 
     useEffect(() => {
-        if (initial) return;
+        if (hasInitialPosition) return;
 
         const element = targetRef.current;
         if (!element) return;
@@ -103,25 +104,27 @@ export const useDraggable = (options: DraggableOptions = {}): UseDraggableReturn
 
         setPosition(centered);
         positionRef.current = centered;
-    }, [getBoundsRect, initial, referenceFrame]);
+    }, [getBoundsRect, hasInitialPosition, referenceFrame]);
 
     useEffect(() => {
-        if (!initial) return;
+        if (!hasInitialPosition) return;
 
         const element = targetRef.current;
         if (!element) return;
 
         setPosition((previous) => {
             const next = clampToBounds(previous.x, previous.y);
+            if (next.x === previous.x && next.y === previous.y) return previous;
             positionRef.current = next;
             return next;
         });
-    }, [clampToBounds, initial]);
+    }, [clampToBounds, hasInitialPosition]);
 
     useEffect(() => {
         const handleWindowResize = () => {
             setPosition((previous) => {
                 const next = onResize ? onResize(previous) : clampToBounds(previous.x, previous.y);
+                if (next.x === previous.x && next.y === previous.y) return previous;
                 positionRef.current = next;
                 return next;
             });
@@ -135,6 +138,7 @@ export const useDraggable = (options: DraggableOptions = {}): UseDraggableReturn
         const handleWindowScroll = () => {
             setPosition((previous) => {
                 const next = onScroll ? onScroll(previous) : clampToBounds(previous.x, previous.y);
+                if (next.x === previous.x && next.y === previous.y) return previous;
                 positionRef.current = next;
                 return next;
             });

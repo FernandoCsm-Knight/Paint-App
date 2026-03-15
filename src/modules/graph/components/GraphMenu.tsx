@@ -1,4 +1,5 @@
 import {
+    LuHand,
     LuCircleDot,
     LuDownload,
     LuGrid2X2,
@@ -19,7 +20,7 @@ const ALGORITHMS: { id: AlgorithmId; label: string }[] = [
 ];
 
 const GraphMenu = () => {
-    const { state, dispatch } = useGraphContext();
+    const { state, dispatch, isPanModeActive, setPanModeActive } = useGraphContext();
     const {
         directed,
         snapToGrid,
@@ -28,6 +29,7 @@ const GraphMenu = () => {
         startNodeId,
         endNodeId,
         nodes,
+        edgeSourceId,
     } = state;
 
     const nodeCount = Object.keys(nodes).length;
@@ -109,7 +111,7 @@ const GraphMenu = () => {
                 </div>
 
                 {/* Interaction hint */}
-                {state.edgeSourceId && (
+                {edgeSourceId && (
                     <div className="ui-menu-title-badge rounded-lg px-3 py-1.5 text-xs text-center">
                         Clique direito em outro vértice para criar aresta
                     </div>
@@ -127,6 +129,20 @@ const GraphMenu = () => {
 
                 {/* Action buttons */}
                 <div className="grid grid-cols-2 gap-[var(--pm-gap)]">
+                    <WorkspaceToolButton
+                        ariaLabel="Mover viewport"
+                        title={isPanModeActive ? 'Desativar pan' : 'Ativar pan'}
+                        stayActive
+                        active={isPanModeActive}
+                        onClick={() => setPanModeActive(!isPanModeActive)}
+                        className="flex items-center justify-center gap-2 px-3"
+                    >
+                        <LuHand className="workspace-icon" />
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm">
+                            Pan
+                        </span>
+                    </WorkspaceToolButton>
+
                     <WorkspaceToolButton
                         ariaLabel="Snap to grid"
                         title={snapToGrid ? 'Desativar snap' : 'Ativar snap'}
@@ -280,6 +296,8 @@ const GraphMenu = () => {
                         <span className="block">🖱 Duplo-clique → criar vértice</span>
                         <span className="block">🖱 Clique → selecionar</span>
                         <span className="block">🖱 Direito → criar aresta</span>
+                        <span className="block">🖱 Roda → zoom no cursor</span>
+                        <span className="block">🖱 Botão do meio / Pan → mover viewport</span>
                         <span className="block">🖱 Duplo-clique no elem. → editar</span>
                         <span className="block">⌨ Delete → remover seleção</span>
                     </p>

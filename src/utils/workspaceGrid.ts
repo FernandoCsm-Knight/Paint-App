@@ -1,18 +1,27 @@
-import type { Point } from "../../../functions/geometry";
+import type { Point } from "../functions/geometry";
 
 export const STANDARD_GRID_SIZE = 32;
 export const GRID_LINE_COLOR = "#d5d9e2";
+export const GRID_LINE_CSS_VAR = "--workspace-grid-line";
+
+const getGridStrokeStyle = () => {
+    if (typeof window === "undefined") return GRID_LINE_COLOR;
+
+    const themeRoot = document.querySelector(".app-theme") ?? document.documentElement;
+    const resolvedColor = window.getComputedStyle(themeRoot).getPropertyValue(GRID_LINE_CSS_VAR).trim();
+    return resolvedColor || GRID_LINE_COLOR;
+};
 
 export const getGridCellSize = (pixelated: boolean, pixelSize: number, zoom: number = 1) => {
     return (pixelated ? pixelSize : STANDARD_GRID_SIZE) * zoom;
 };
 
 export const drawGrid = (
-    ctx: CanvasRenderingContext2D, 
-    viewOffset: Point, 
-    cellSize: number, 
-    width: number, 
-    height: number, 
+    ctx: CanvasRenderingContext2D,
+    viewOffset: Point,
+    cellSize: number,
+    width: number,
+    height: number,
     dpr: number
 ) => {
     const startX = ((viewOffset.x % cellSize) + cellSize) % cellSize;
@@ -20,7 +29,7 @@ export const drawGrid = (
 
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.strokeStyle = GRID_LINE_COLOR;
+    ctx.strokeStyle = getGridStrokeStyle();
     ctx.lineWidth = 1;
     ctx.beginPath();
 

@@ -1,12 +1,13 @@
-import { createContext, type CSSProperties, type ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, type CSSProperties, type ReactNode, useMemo, useState } from "react";
 import { defaultAppPalette, type AppPalette } from "./palettes";
 
-type ThemeContextType = {
+export type ThemeContextType = {
     palette: AppPalette;
-    setActivePalette: (palette: AppPalette) => void;
+    setActivePalette: React.Dispatch<React.SetStateAction<AppPalette>>;
 };
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+// eslint-disable-next-line react-refresh/only-export-components
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 type ThemeProviderProps = {
     children: ReactNode;
@@ -73,6 +74,16 @@ const paletteToCssVariables = (palette: AppPalette): CSSProperties => ({
     "--ui-focus-ring": palette.ui.focusRing,
     "--ui-slider-thumb": palette.ui.sliderThumb,
     "--ui-slider-thumb-hover": palette.ui.sliderThumbHover,
+    "--workspace-grid-line": palette.ui.menuBorder,
+    "--graph-edge": palette.ui.menuBorderStrong,
+    "--graph-edge-selected": palette.ui.menuControlActiveSurface,
+    "--graph-edge-visited": palette.shell.accentBorderStrong,
+    "--graph-edge-preview": palette.ui.menuHandle,
+    "--graph-edge-label": palette.ui.menuTextMuted,
+    "--graph-node-fill": palette.ui.menuTextStrong,
+    "--graph-node-stroke": palette.ui.menuBorderStrong,
+    "--graph-node-text": palette.ui.menuCardSurface,
+    "--graph-node-badge": palette.ui.menuTextMuted,
 } as CSSProperties);
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
@@ -90,10 +101,4 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
             </div>
         </ThemeContext.Provider>
     );
-};
-
-export const useTheme = (): ThemeContextType => {
-    const ctx = useContext(ThemeContext);
-    if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
-    return ctx;
 };

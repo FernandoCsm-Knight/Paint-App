@@ -36,7 +36,7 @@ const Sidebar = ({
             />
 
             <aside
-                className={`app-sidebar-shell theme-sidebar-shell fixed inset-y-0 left-0 z-40 flex h-dvh min-h-0 w-[min(86vw,340px)] flex-col overflow-hidden border-r backdrop-blur-xl transition-transform duration-300 lg:relative lg:z-auto lg:h-full lg:translate-x-0 ${
+                className={`app-sidebar-shell theme-sidebar-shell fixed inset-y-0 left-0 z-40 flex h-dvh min-h-0 w-[min(86vw,340px)] flex-col overflow-hidden border-r backdrop-blur-xl transition-transform duration-300 lg:relative lg:z-[120] lg:h-full lg:translate-x-0 ${
                     isMobileOpen ? 'translate-x-0' : '-translate-x-full'
                 } ${isCollapsed ? 'lg:w-24' : 'lg:w-80'}`}
             >

@@ -29,7 +29,7 @@ const App = () => {
                     }}
                 />
 
-                <main className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden">
+                <main className="relative z-0 h-full min-h-0 min-w-0 flex-1 overflow-hidden">
                     <MobileTopbar
                         activeModuleName={activeModule.name}
                         onOpenSidebar={() => setIsMobileSidebarOpen(true)}

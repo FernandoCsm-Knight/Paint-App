@@ -36,6 +36,18 @@ interface EdgeEndpoints {
     labelY: number;
 }
 
+interface GraphViewportState {
+    viewOffset: { x: number; y: number };
+    zoom: number;
+    viewportSize: { width: number; height: number };
+}
+
+type DragPointerEvent = {
+    button: number;
+    x: number;
+    y: number;
+};
+
 function computeEdgeEndpoints(
     sx: number,
     sy: number,
@@ -69,6 +81,7 @@ export function useGraphD3(
     svgRef: RefObject<SVGSVGElement | null>,
     state: GraphState,
     dispatch: React.Dispatch<GraphAction>,
+    viewport: GraphViewportState,
 ): void {
     // Always-fresh refs to avoid stale closures in D3 callbacks
     const stateRef = useRef(state);
@@ -81,6 +94,7 @@ export function useGraphD3(
     });
 
     const dragMovedRef = useRef(false);
+    const dragPreviewRef = useRef<Record<string, { x: number; y: number }>>({});
 
     // ── Setup (once on mount) ──────────────────────────────────────────────────
     useEffect(() => {
@@ -109,24 +123,6 @@ export function useGraphD3(
             .append('path')
             .attr('d', 'M0,-6L12,0L0,6Z')
             .style('fill', 'context-stroke');
-
-        // Grid line pattern — same visual approach as Paint's Grid.ts
-        const gridPat = defs.append('pattern')
-            .attr('id', 'graph-grid')
-            .attr('patternUnits', 'userSpaceOnUse');
-        // Two path segments draw the top and left edge of each cell;
-        // when tiled they form a full grid of lines.
-        gridPat.append('path')
-            .attr('class', 'graph-grid-line')
-            .attr('fill', 'none');
-
-        // ── Background ────────────────────────────────────────────────────────
-        // Use .style() so the inline style beats any CSS-class fill declarations.
-        svg.append('rect')
-            .attr('class', 'graph-bg')
-            .attr('width', '100%')
-            .attr('height', '100%')
-            .style('fill', 'url(#graph-grid)');
 
         // ── Layers ────────────────────────────────────────────────────────────
         svg.append('g').attr('class', 'edges-layer');
@@ -175,7 +171,7 @@ export function useGraphD3(
             const src = s.nodes[s.edgeSourceId];
             if (!src) return;
             const [mx, my] = d3.pointer(event, svgEl);
-            svg.select<SVGLineElement>('.edge-preview')
+            svg.select('.edge-preview')
                 .style('display', null)
                 .attr('x1', src.x)
                 .attr('y1', src.y)
@@ -222,25 +218,32 @@ export function useGraphD3(
             selectedEdgeId,
             edgeSourceId,
             directed,
-            gridSize,
             algorithmSteps,
             currentStepIndex,
             startNodeId,
             endNodeId,
             selectingFor,
         } = state;
+        const { viewOffset, zoom, viewportSize } = viewport;
 
         const currentStep = algorithmSteps[currentStepIndex];
         const nodesArray = Object.values(nodes);
         const edgesArray = Object.values(edges);
+        const viewBoxWidth = Math.max(1, viewportSize.width / zoom);
+        const viewBoxHeight = Math.max(1, viewportSize.height / zoom);
+        const viewBoxX = Math.max(0, -viewOffset.x / zoom);
+        const viewBoxY = Math.max(0, -viewOffset.y / zoom);
+        const getNodePosition = (id: string) => dragPreviewRef.current[id] ?? nodes[id] ?? null;
 
-        // ── Grid pattern update ────────────────────────────────────────────────
-        svg.select<SVGPatternElement>('#graph-grid')
-            .attr('width', gridSize)
-            .attr('height', gridSize);
-        // Top + left edge of each cell; tiling forms a full line grid
-        svg.select('.graph-grid-line')
-            .attr('d', `M ${gridSize} 0 L 0 0 0 ${gridSize}`);
+        for (const [nodeId, preview] of Object.entries(dragPreviewRef.current)) {
+            const node = nodes[nodeId];
+            if (node && node.x === preview.x && node.y === preview.y) {
+                delete dragPreviewRef.current[nodeId];
+            }
+        }
+
+        svg.attr('viewBox', `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`)
+            .attr('preserveAspectRatio', 'xMinYMin meet');
 
         // Hide preview when not in edge-creation mode
         if (!edgeSourceId) {
@@ -249,24 +252,29 @@ export function useGraphD3(
 
         // ── Drag behaviour (created fresh each render so refs are captured) ────
         const drag = d3
-            .drag<SVGGElement, GraphNode>()
+            .drag()
             .filter((event: PointerEvent) => event.button === 0)
             .clickDistance(6)
-            .subject((_, d) => ({ x: d.x, y: d.y }))
-            .on('start', function () {
+            .subject((_: unknown, d: GraphNode) => ({ x: d.x, y: d.y }))
+            .on('start', function (this: SVGGElement) {
                 dragMovedRef.current = false;
+                const datum = d3.select(this).datum() as GraphNode | undefined;
+                if (datum) {
+                    dragPreviewRef.current[datum.id] = { x: datum.x, y: datum.y };
+                }
                 d3.select(this).raise();
             })
-            .on('drag', function (event, d) {
+            .on('drag', function (this: SVGGElement, event: DragPointerEvent, d: GraphNode) {
                 dragMovedRef.current = true;
                 const s = stateRef.current;
                 const nx = s.snapToGrid ? snap(event.x, s.gridSize) : event.x;
                 const ny = s.snapToGrid ? snap(event.y, s.gridSize) : event.y;
+                dragPreviewRef.current[d.id] = { x: nx, y: ny };
 
                 d3.select(this).attr('transform', `translate(${nx},${ny})`);
 
                 // Live-update connected edges without touching React state
-                svg.selectAll<SVGGElement, GraphEdge>('g.edge-group').each(function (ed) {
+                svg.selectAll('g.edge-group').each(function (this: SVGGElement, ed: GraphEdge) {
                     if (ed.source !== d.id && ed.target !== d.id) return;
                     const sx2 = ed.source === d.id ? nx : (s.nodes[ed.source]?.x ?? 0);
                     const sy2 = ed.source === d.id ? ny : (s.nodes[ed.source]?.y ?? 0);
@@ -285,21 +293,24 @@ export function useGraphD3(
                         .attr('x', ep.labelX).attr('y', ep.labelY);
                 });
             })
-            .on('end', function (event, d) {
+            .on('end', function (this: SVGGElement, event: DragPointerEvent, d: GraphNode) {
                 if (dragMovedRef.current) {
                     const s = stateRef.current;
                     const nx = s.snapToGrid ? snap(event.x, s.gridSize) : event.x;
                     const ny = s.snapToGrid ? snap(event.y, s.gridSize) : event.y;
+                    dragPreviewRef.current[d.id] = { x: nx, y: ny };
                     dispatchRef.current({ type: 'MOVE_NODE', id: d.id, x: nx, y: ny });
+                } else {
+                    delete dragPreviewRef.current[d.id];
                 }
                 dragMovedRef.current = false;
             });
 
         // ── Edges ──────────────────────────────────────────────────────────────
-        const edgesLayer = svg.select<SVGGElement>('.edges-layer');
+        const edgesLayer = svg.select('.edges-layer');
         const edgeGroups = edgesLayer
-            .selectAll<SVGGElement, GraphEdge>('g.edge-group')
-            .data(edgesArray, (d) => d.id);
+            .selectAll('g.edge-group')
+            .data(edgesArray, (d: GraphEdge) => d.id);
 
         const edgeEnter = edgeGroups
             .enter()
@@ -327,9 +338,9 @@ export function useGraphD3(
         });
 
         // Update geometry and visual classes
-        edgeUpdate.each(function (d: GraphEdge) {
-            const src = nodes[d.source];
-            const tgt = nodes[d.target];
+        edgeUpdate.each(function (this: SVGGElement, d: GraphEdge) {
+            const src = getNodePosition(d.source);
+            const tgt = getNodePosition(d.target);
             if (!src || !tgt) return;
             const ep = computeEdgeEndpoints(src.x, src.y, tgt.x, tgt.y, directed);
             if (!ep) return;
@@ -349,7 +360,7 @@ export function useGraphD3(
                 });
         });
 
-        edgeUpdate.select<SVGLineElement>('.edge-line')
+        edgeUpdate.select('.edge-line')
             .attr('class', (d: GraphEdge) => {
                 const parts = ['edge-line'];
                 if (d.id === selectedEdgeId) parts.push('edge-selected');
@@ -362,10 +373,10 @@ export function useGraphD3(
         edgeGroups.exit().remove();
 
         // ── Nodes ──────────────────────────────────────────────────────────────
-        const nodesLayer = svg.select<SVGGElement>('.nodes-layer');
+        const nodesLayer = svg.select('.nodes-layer');
         const nodeGroups = nodesLayer
-            .selectAll<SVGGElement, GraphNode>('g.node-group')
-            .data(nodesArray, (d) => d.id);
+            .selectAll('g.node-group')
+            .data(nodesArray, (d: GraphNode) => d.id);
 
         const nodeEnter = nodeGroups
             .enter()
@@ -431,10 +442,13 @@ export function useGraphD3(
         });
 
         // Update transforms
-        nodeUpdate.attr('transform', (d: GraphNode) => `translate(${d.x},${d.y})`);
+        nodeUpdate.attr('transform', (d: GraphNode) => {
+            const position = getNodePosition(d.id) ?? d;
+            return `translate(${position.x},${position.y})`;
+        });
 
         // Update circle class
-        nodeUpdate.select<SVGCircleElement>('.node-circle').attr('class', (d: GraphNode) => {
+        nodeUpdate.select('.node-circle').attr('class', (d: GraphNode) => {
             const parts = ['node-circle'];
             if (d.id === selectedNodeId) parts.push('node-selected');
             if (d.id === startNodeId) parts.push('node-start');
@@ -447,10 +461,10 @@ export function useGraphD3(
         });
 
         // Update labels
-        nodeUpdate.select<SVGTextElement>('.node-label').text((d: GraphNode) => d.label);
+        nodeUpdate.select('.node-label').text((d: GraphNode) => d.label);
 
         // Update start/end badges
-        nodeUpdate.select<SVGTextElement>('.node-badge').text((d: GraphNode) => {
+        nodeUpdate.select('.node-badge').text((d: GraphNode) => {
             const parts: string[] = [];
             if (d.id === startNodeId) parts.push('S');
             if (d.id === endNodeId) parts.push('E');
@@ -464,5 +478,5 @@ export function useGraphD3(
         );
 
         nodeGroups.exit().remove();
-    }, [state, svgRef, dragMovedRef]);
+    }, [state, svgRef, dragMovedRef, viewport]);
 }

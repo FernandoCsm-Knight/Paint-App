@@ -1,7 +1,8 @@
-import { useReducer, useMemo } from 'react';
+import { useMemo, useReducer, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { GraphContext } from '../GraphContext';
 import type { GraphState, GraphAction } from '../../types/graph';
+import { STANDARD_GRID_SIZE } from '../../../../utils/workspaceGrid';
 
 const initialState: GraphState = {
     nodes: {},
@@ -13,7 +14,7 @@ const initialState: GraphState = {
     editingEdgeId: null,
     directed: true,
     snapToGrid: true,
-    gridSize: 40,
+    gridSize: STANDARD_GRID_SIZE,
     algorithm: 'none',
     startNodeId: null,
     endNodeId: null,
@@ -193,9 +194,35 @@ function graphReducer(state: GraphState, action: GraphAction): GraphState {
     }
 }
 
+const DEFAULT_WORLD_SIZE = {
+    width: 2400,
+    height: 1600,
+};
+
 const GraphProvider = ({ children }: { children: ReactNode }) => {
     const [state, dispatch] = useReducer(graphReducer, initialState);
-    const value = useMemo(() => ({ state, dispatch }), [state]);
+    const containerRef = useRef<HTMLElement | null>(null);
+    const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [worldSize, setWorldSize] = useState(DEFAULT_WORLD_SIZE);
+    const [isPanModeActive, setPanModeActive] = useState(false);
+    const [isCanvasPanning, setCanvasPanning] = useState(false);
+
+    const value = useMemo(() => ({
+        state,
+        dispatch,
+        containerRef,
+        viewOffset,
+        setViewOffset,
+        zoom,
+        setZoom,
+        worldSize,
+        setWorldSize,
+        isPanModeActive,
+        setPanModeActive,
+        isCanvasPanning,
+        setCanvasPanning,
+    }), [isCanvasPanning, isPanModeActive, state, viewOffset, worldSize, zoom]);
 
     return <GraphContext.Provider value={value}>{children}</GraphContext.Provider>;
 };

@@ -7,7 +7,7 @@ interface LabelEditorProps {
 }
 
 const LabelEditor = ({ svgRef }: LabelEditorProps) => {
-    const { state, dispatch } = useGraphContext();
+    const { state, dispatch, viewOffset, zoom } = useGraphContext();
     const inputRef = useRef<HTMLInputElement>(null);
     const [value, setValue] = useState('');
     const cancelledRef = useRef(false);
@@ -53,14 +53,14 @@ const LabelEditor = ({ svgRef }: LabelEditorProps) => {
     let screenY = 0;
 
     if (editingNode) {
-        screenX = svgRect.left + editingNode.x;
-        screenY = svgRect.top + editingNode.y;
+        screenX = svgRect.left + editingNode.x * zoom + viewOffset.x;
+        screenY = svgRect.top + editingNode.y * zoom + viewOffset.y;
     } else if (editingEdge) {
         const src = state.nodes[editingEdge.source];
         const tgt = state.nodes[editingEdge.target];
         if (!src || !tgt) return null;
-        screenX = svgRect.left + (src.x + tgt.x) / 2;
-        screenY = svgRect.top + (src.y + tgt.y) / 2;
+        screenX = svgRect.left + ((src.x + tgt.x) / 2) * zoom + viewOffset.x;
+        screenY = svgRect.top + ((src.y + tgt.y) / 2) * zoom + viewOffset.y;
     }
 
     const commit = () => {

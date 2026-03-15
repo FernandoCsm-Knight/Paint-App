@@ -1,5 +1,6 @@
+import { useContext } from 'react';
 import { LuPalette } from 'react-icons/lu';
-import { useTheme } from '../theme/ThemeContext';
+import { ThemeContext } from '../theme/ThemeContext';
 import { darkPalettes, lightPalettes, highContrastPalettes, type AppPalette } from '../theme/palettes';
 
 type ThemePickerProps = {
@@ -40,7 +41,12 @@ const Swatch = ({
 );
 
 const ThemePicker = ({ isCollapsed }: ThemePickerProps) => {
-    const { palette: activePalette, setActivePalette } = useTheme();
+    const theme = useContext(ThemeContext);
+    if (!theme) {
+        throw new Error('ThemePicker must be used inside ThemeProvider');
+    }
+
+    const { palette: activePalette, setActivePalette } = theme;
 
     if (isCollapsed) {
         return (

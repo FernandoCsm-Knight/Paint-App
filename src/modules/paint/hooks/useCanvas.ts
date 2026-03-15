@@ -1,9 +1,11 @@
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { PaintContext } from "../context/PaintContext";
 import { ReplacementContext } from "../context/ReplacementContext";
+import { SettingsContext } from "../context/SettingsContext";
+import useWorkspaceViewport from "../../../hooks/useWorkspaceViewport";
+import { drawGrid, getGridCellSize } from "../../../utils/workspaceGrid";
 import { ClipboardImageLoader } from "../utils/ClipboardImageLoader";
 import ImageShape from "../shapes/ImageShape";
-import useViewport from "./useViewport";
 import useDrawingHandlers from "./useDrawingHandlers";
 import useScene from "./useScene";
 
@@ -19,15 +21,111 @@ const useCanvas = () => {
         containerRef,
         contextRef,
         canvasSize,
+        viewOffset,
+        zoom,
+        pixelated,
         setViewOffset,
         setRenderViewport,
     } = useContext(PaintContext)!;
 
     const { replacementCanvasRef, replacementContextRef } = useContext(ReplacementContext)!;
+    const { pixelSize, gridDisplayMode } = useContext(SettingsContext)!;
 
     const { sceneRef, pushShape, undoScene, redoScene, redrawFromScene, takeSnapshotShape } = useScene();
 
-    const { renderViewport, getViewportSize, clampViewOffset, getMinAllowedZoom } = useViewport(documentCanvasRef);
+    const viewportCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+    const overlayViewportCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+
+    const { getViewportSize, clampViewOffset, getMinAllowedZoom } = useWorkspaceViewport({
+        containerRef,
+        zoom,
+        getWorldSize: () => ({
+            width: documentCanvasRef.current?.width ?? 0,
+            height: documentCanvasRef.current?.height ?? 0,
+        }),
+    });
+
+    const resizeViewportCanvas = useCallback((canvas: HTMLCanvasElement, width: number, height: number) => {
+        const dpr = window.devicePixelRatio || 1;
+        const bitmapWidth = Math.max(1, Math.floor(width * dpr));
+        const bitmapHeight = Math.max(1, Math.floor(height * dpr));
+        if (canvas.width !== bitmapWidth) canvas.width = bitmapWidth;
+        if (canvas.height !== bitmapHeight) canvas.height = bitmapHeight;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+    }, []);
+
+    const renderViewport = useCallback(() => {
+        const documentCanvas = documentCanvasRef.current;
+        const viewportCanvas = canvasRef.current;
+        const overlayCanvas = replacementCanvasRef.current;
+        const { width: viewportWidth, height: viewportHeight } = getViewportSize();
+
+        if (!documentCanvas || !viewportCanvas || !overlayCanvas || viewportWidth <= 0 || viewportHeight <= 0) {
+            return;
+        }
+
+        resizeViewportCanvas(viewportCanvas, viewportWidth, viewportHeight);
+        resizeViewportCanvas(overlayCanvas, viewportWidth, viewportHeight);
+
+        if (!viewportCtxRef.current || viewportCtxRef.current.canvas !== viewportCanvas) {
+            viewportCtxRef.current = viewportCanvas.getContext("2d", { alpha: true }) ?? null;
+        }
+        if (!overlayViewportCtxRef.current || overlayViewportCtxRef.current.canvas !== overlayCanvas) {
+            overlayViewportCtxRef.current = overlayCanvas.getContext("2d", { alpha: true }) ?? null;
+        }
+
+        const viewportCtx = viewportCtxRef.current;
+        const overlayViewportCtx = overlayViewportCtxRef.current;
+        if (!viewportCtx || !overlayViewportCtx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const offsetX = viewOffset.x;
+        const offsetY = viewOffset.y;
+        const sourceWidth = Math.min(documentCanvas.width, viewportWidth / zoom);
+        const sourceHeight = Math.min(documentCanvas.height, viewportHeight / zoom);
+        const maxSourceX = Math.max(0, documentCanvas.width - sourceWidth);
+        const maxSourceY = Math.max(0, documentCanvas.height - sourceHeight);
+        const sourceX = Math.min(maxSourceX, Math.max(0, -offsetX / zoom));
+        const sourceY = Math.min(maxSourceY, Math.max(0, -offsetY / zoom));
+
+        viewportCtx.setTransform(1, 0, 0, 1, 0, 0);
+        viewportCtx.clearRect(0, 0, viewportCtx.canvas.width, viewportCtx.canvas.height);
+        viewportCtx.imageSmoothingEnabled = false;
+        viewportCtx.save();
+        viewportCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        viewportCtx.drawImage(documentCanvas, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, viewportWidth, viewportHeight);
+        viewportCtx.restore();
+
+        overlayViewportCtx.setTransform(1, 0, 0, 1, 0, 0);
+        overlayViewportCtx.clearRect(0, 0, overlayViewportCtx.canvas.width, overlayViewportCtx.canvas.height);
+
+        if (gridDisplayMode !== "none") {
+            drawGrid(
+                overlayViewportCtx,
+                { x: offsetX, y: offsetY },
+                getGridCellSize(pixelated, pixelSize, zoom),
+                viewportWidth,
+                viewportHeight,
+                dpr
+            );
+        }
+    }, [
+        canvasRef,
+        getViewportSize,
+        gridDisplayMode,
+        pixelSize,
+        pixelated,
+        replacementCanvasRef,
+        resizeViewportCanvas,
+        viewOffset.x,
+        viewOffset.y,
+        zoom,
+    ]);
+
+    useEffect(() => {
+        renderViewport();
+    }, [renderViewport]);
 
     const renderViewportRef = useRef(renderViewport);
     useEffect(() => {

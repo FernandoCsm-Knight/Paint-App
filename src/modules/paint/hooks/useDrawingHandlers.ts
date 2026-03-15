@@ -8,8 +8,8 @@ import FreeForm from "../shapes/FreeForm";
 import FillShape from "../shapes/FillShape";
 import SnapshotShape from "../shapes/SnapshotShape";
 import { map } from "../types/Graphics";
+import useWorkspacePanZoom from "../../../hooks/useWorkspacePanZoom";
 import useSelection from "./useSelection";
-import usePanZoom from "./usePanZoom";
 import usePolygonDrawing from "./usePolygonDrawing";
 import usePendingPlacement from "./usePendingPlacement";
 import type { SceneItem } from "./useScene";
@@ -38,6 +38,7 @@ const useDrawingHandlers = ({
 }: DrawingHandlersInput) => {
     const {
         canvasRef,
+        containerRef,
         contextRef,
         thickness,
         currentColor,
@@ -47,7 +48,13 @@ const useDrawingHandlers = ({
         pixelated,
         selectedShape,
         viewOffset,
+        setViewOffset,
         zoom,
+        setZoom,
+        canvasSize,
+        setCanvasSize,
+        setCanvasPanning,
+        isPanModeActive,
     } = useContext(PaintContext)!;
 
     const { pixelSize, lineAlgorithm } = useContext(SettingsContext)!;
@@ -61,7 +68,17 @@ const useDrawingHandlers = ({
         cancelSelection,
         commitSelection,
     } = useSelection({ sceneRef, pushShape, redrawFromScene, takeSnapshotShape });
-    const { onPointerDown: panDown, onPointerMove: panMove, onPointerUp: panUp, handleWheel } = usePanZoom({
+    const { onPointerDown: panDown, onPointerMove: panMove, onPointerUp: panUp, handleWheel } = useWorkspacePanZoom({
+        interactionRef: canvasRef,
+        containerRef,
+        viewOffset,
+        setViewOffset,
+        zoom,
+        setZoom,
+        worldSize: canvasSize,
+        setWorldSize: setCanvasSize,
+        setIsPanning: setCanvasPanning,
+        isPanModeActive,
         getViewportSize,
         clampViewOffset,
         getMinAllowedZoom,
